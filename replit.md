@@ -37,6 +37,7 @@ Preferred communication style: Simple, everyday language.
 - **Migrations**: Stored in `./migrations` directory
 - **Current Storage**: Memory storage (`MemStorage`) as fallback when database unavailable
 - **Database Push**: `npm run db:push` via drizzle-kit
+- **Access Link System**: Tracks setup links in `access_links` table with usage-based expiration (1 use per link)
 
 ### Project Structure
 ```

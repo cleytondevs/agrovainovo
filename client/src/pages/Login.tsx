@@ -26,33 +26,48 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLinkExpired, setIsLinkExpired] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [linkCode, setLinkCode] = useState<string | null>(null);
+
+  // Generate unique link code
+  const generateLinkCode = () => {
+    return Math.random().toString(36).substring(2, 15) + 
+           Math.random().toString(36).substring(2, 15);
+  };
 
   useEffect(() => {
-    const checkIpVisit = async () => {
+    const checkAccessLink = async () => {
       try {
-        const response = await fetch("https://api.ipify.org?format=json");
-        const { ip } = await response.json();
-        
-        if (ip) {
-          // Fallback seguro se a tabela não existir
+        // Get link code from URL or sessionStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeFromUrl = urlParams.get("code");
+        const codeFromSession = sessionStorage.getItem("accessLinkCode");
+        const code = codeFromUrl || codeFromSession;
+
+        if (code) {
+          setLinkCode(code);
+          
+          // Check if link exists and has uses remaining
           const { data, error } = await supabase
-            .from("ip_visits")
-            .select("ip")
-            .eq("ip", ip)
+            .from("access_links")
+            .select("uses_remaining")
+            .eq("link_code", code)
             .maybeSingle();
           
-          if (data) {
+          if (data && data.uses_remaining <= 0) {
+            setIsLinkExpired(true);
+          } else if (!data) {
+            // Link doesn't exist or was already used
             setIsLinkExpired(true);
           }
         }
       } catch (err) {
-        console.error("Erro ao verificar IP:", err);
+        console.error("Erro ao verificar link:", err);
       } finally {
         setIsChecking(false);
       }
     };
     
-    checkIpVisit();
+    checkAccessLink();
   }, []);
 
   const authForm = useForm<AuthFormValues>({
@@ -70,20 +85,38 @@ export default function Login() {
 
       if (signUpError) throw signUpError;
 
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const { ip } = await res.json();
-        if (ip) {
-          await supabase.from("ip_visits").insert([{ ip }]);
-        }
-      } catch (e) {}
+      // Generate new access link with single use
+      const newLinkCode = generateLinkCode();
+      const { error: insertError } = await supabase
+        .from("access_links")
+        .insert([{ 
+          link_code: newLinkCode, 
+          uses_remaining: 1,
+          email: data.email 
+        }]);
+
+      if (insertError) throw insertError;
+
+      const accessUrl = `${window.location.origin}?code=${newLinkCode}`;
 
       toast({
         title: "Acesso criado!",
-        description: "Seu acesso foi configurado. Agora utilize o link do painel.",
+        description: `Link: ${accessUrl}`,
       });
       
-      setIsLinkExpired(true);
+      // Store link code in session and mark as used
+      sessionStorage.setItem("accessLinkCode", newLinkCode);
+      setLinkCode(newLinkCode);
+      
+      // Decrement uses immediately after creation
+      const { error: updateError } = await supabase
+        .from("access_links")
+        .update({ uses_remaining: 0 })
+        .eq("link_code", newLinkCode);
+      
+      if (!updateError) {
+        setIsLinkExpired(true);
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -113,14 +146,14 @@ export default function Login() {
             </div>
             <CardTitle className="text-2xl font-bold text-secondary">Link Expirado</CardTitle>
             <CardDescription>
-              Este link de configuração de acesso já foi utilizado por este dispositivo.
+              Este link de configuração de acesso foi utilizado e não pode ser reutilizado.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Alert>
               <AlertTitle>Atenção</AlertTitle>
               <AlertDescription>
-                Para acessar seu painel, utilize o link oficial da WR Agro Tech.
+                Cada link pode ser usado apenas uma vez. Para obter um novo link, solicite ao administrador.
               </AlertDescription>
             </Alert>
           </CardContent>
