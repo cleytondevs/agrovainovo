@@ -28,6 +28,7 @@ import {
   Beaker
 } from "lucide-react";
 import SoilAnalysis from "./SoilAnalysis";
+import SoilMaterials from "./SoilMaterials";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -216,6 +217,15 @@ export default function Dashboard() {
           <Beaker className="h-5 w-5" />
           Análise de Solo
         </Button>
+        <Button 
+          variant={activeTab === "materials" ? "secondary" : "ghost"} 
+          className="w-full justify-start gap-3 text-base h-12"
+          onClick={() => setActiveTab("materials")}
+          data-testid="button-tab-materials"
+        >
+          <Leaf className="h-5 w-5" />
+          Matéria
+        </Button>
       </nav>
 
       <div className="p-4 border-t border-border/50">
@@ -247,7 +257,7 @@ export default function Dashboard() {
               </SheetContent>
             </Sheet>
             <h1 className="text-xl font-bold text-secondary">
-              {activeTab === "calendar" ? "Agenda do Agricultor" : activeTab === "soil" ? "Análise de Solo" : "Painel de Controle"}
+              {activeTab === "calendar" ? "Agenda do Agricultor" : activeTab === "soil" ? "Análise de Solo" : activeTab === "materials" ? "Guia de Análise de Solo" : "Painel de Controle"}
             </h1>
           </div>
 
@@ -280,6 +290,12 @@ export default function Dashboard() {
             {activeTab === "soil" && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <SoilAnalysis userEmail={user?.email} />
+              </div>
+            )}
+
+            {activeTab === "materials" && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <SoilMaterials />
               </div>
             )}
 
