@@ -1,0 +1,58 @@
+chunk-LPF6KSF2.js?v=5b9e1a0f:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+tab.js:1 Refused to execute inline script because it violates the following Content Security Policy directive: "script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' chrome-extension://97e709e0-d938-420d-b727-ffcf1986173d/". Either the 'unsafe-inline' keyword, a hash ('sha256-kPx0AsF0oz2kKiZ875xSvv693TBHkQ/0SkMJZnnNpnQ='), or a nonce ('nonce-...') is required to enable inline execution.
+
+(anonymous) @ tab.js:1
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+uocgvjfxfpxzecxplffa.supabase.co/auth/v1/signup:1  Failed to load resource: the server responded with a status of 422 ()
+uocgvjfxfpxzecxplffa.supabase.co/auth/v1/signup:1  Failed to load resource: the server responded with a status of 422 ()
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/access_links?columns=%22link_code%22%2C%22uses_remaining%22%2C%22email%22:1  Failed to load resource: the server responded with a status of 404 ()
+uocgvjfxfpxzecxplffa.supabase.co/auth/v1/signup:1  Failed to load resource: the server responded with a status of 422 ()
+uocgvjfxfpxzecxplffa.supabase.co/auth/v1/signup:1  Failed to load resource: the server responded with a status of 422 ()
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/access_links?columns=%22link_code%22%2C%22uses_remaining%22%2C%22email%22:1  Failed to load resource: the server responded with a status of 404 ()
+Login.tsx:81  POST https://uocgvjfxfpxzecxplffa.supabase.co/auth/v1/signup 422 (Unprocessable Content)
+(anonymous) @ @supabase_supabase-js.js?v=5b9e1a0f:7160
+_handleRequest2 @ @supabase_supabase-js.js?v=5b9e1a0f:7450
+_request @ @supabase_supabase-js.js?v=5b9e1a0f:7440
+signUp @ @supabase_supabase-js.js?v=5b9e1a0f:9135
+onAuth @ Login.tsx:81
+(anonymous) @ chunk-NLV26O5W.js?v=5b9e1a0f:1579
+await in (anonymous)
+callCallback2 @ chunk-LPF6KSF2.js?v=5b9e1a0f:3680
+invokeGuardedCallbackDev @ chunk-LPF6KSF2.js?v=5b9e1a0f:3705
+invokeGuardedCallback @ chunk-LPF6KSF2.js?v=5b9e1a0f:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-LPF6KSF2.js?v=5b9e1a0f:3742
+executeDispatch @ chunk-LPF6KSF2.js?v=5b9e1a0f:7046
+processDispatchQueueItemsInOrder @ chunk-LPF6KSF2.js?v=5b9e1a0f:7066
+processDispatchQueue @ chunk-LPF6KSF2.js?v=5b9e1a0f:7075
+dispatchEventsForPlugins @ chunk-LPF6KSF2.js?v=5b9e1a0f:7083
+(anonymous) @ chunk-LPF6KSF2.js?v=5b9e1a0f:7206
+batchedUpdates$1 @ chunk-LPF6KSF2.js?v=5b9e1a0f:18966
+batchedUpdates @ chunk-LPF6KSF2.js?v=5b9e1a0f:3585
+dispatchEventForPluginEventSystem @ chunk-LPF6KSF2.js?v=5b9e1a0f:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-LPF6KSF2.js?v=5b9e1a0f:5484
+dispatchEvent @ chunk-LPF6KSF2.js?v=5b9e1a0f:5478
+dispatchDiscreteEvent @ chunk-LPF6KSF2.js?v=5b9e1a0f:5455
+Login.tsx:81  POST https://uocgvjfxfpxzecxplffa.supabase.co/auth/v1/signup 422 (Unprocessable Content)
+(anonymous) @ @supabase_supabase-js.js?v=5b9e1a0f:7160
+_handleRequest2 @ @supabase_supabase-js.js?v=5b9e1a0f:7450
+_request @ @supabase_supabase-js.js?v=5b9e1a0f:7440
+signUp @ @supabase_supabase-js.js?v=5b9e1a0f:9135
+onAuth @ Login.tsx:81
+(anonymous) @ chunk-NLV26O5W.js?v=5b9e1a0f:1579
+await in (anonymous)
+callCallback2 @ chunk-LPF6KSF2.js?v=5b9e1a0f:3680
+invokeGuardedCallbackDev @ chunk-LPF6KSF2.js?v=5b9e1a0f:3705
+invokeGuardedCallback @ chunk-LPF6KSF2.js?v=5b9e1a0f:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-LPF6KSF2.js?v=5b9e1a0f:3742
+executeDispatch @ chunk-LPF6KSF2.js?v=5b9e1a0f:7046
+processDispatchQueueItemsInOrder @ chunk-LPF6KSF2.js?v=5b9e1a0f:7066
+processDispatchQueue @ chunk-LPF6KSF2.js?v=5b9e1a0f:7075
+dispatchEventsForPlugins @ chunk-LPF6KSF2.js?v=5b9e1a0f:7083
+(anonymous) @ chunk-LPF6KSF2.js?v=5b9e1a0f:7206
+batchedUpdates$1 @ chunk-LPF6KSF2.js?v=5b9e1a0f:18966
+batchedUpdates @ chunk-LPF6KSF2.js?v=5b9e1a0f:3585
+dispatchEventForPluginEventSystem @ chunk-LPF6KSF2.js?v=5b9e1a0f:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-LPF6KSF2.js?v=5b9e1a0f:5484
+dispatchEvent @ chunk-LPF6KSF2.js?v=5b9e1a0f:5478
+dispatchDiscreteEvent @ chunk-LPF6KSF2.js?v=5b9e1a0f:5455

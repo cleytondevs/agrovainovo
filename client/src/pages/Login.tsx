@@ -46,18 +46,15 @@ export default function Login() {
         if (code) {
           setLinkCode(code);
           
-          // Check if link exists and has uses remaining
-          const { data, error } = await supabase
-            .from("access_links")
-            .select("uses_remaining")
-            .eq("link_code", code)
-            .maybeSingle();
-          
-          if (data && data.uses_remaining <= 0) {
+          // Check if link exists and has uses remaining via backend
+          const response = await fetch(`/api/access-links/${code}`);
+          if (!response.ok) {
             setIsLinkExpired(true);
-          } else if (!data) {
-            // Link doesn't exist or was already used
-            setIsLinkExpired(true);
+          } else {
+            const data = await response.json();
+            if (data.usesRemaining <= 0) {
+              setIsLinkExpired(true);
+            }
           }
         }
       } catch (err) {
@@ -85,17 +82,18 @@ export default function Login() {
 
       if (signUpError) throw signUpError;
 
-      // Generate new access link with single use
+      // Generate new access link with single use via backend
       const newLinkCode = generateLinkCode();
-      const { error: insertError } = await supabase
-        .from("access_links")
-        .insert([{ 
-          link_code: newLinkCode, 
-          uses_remaining: 1,
-          email: data.email 
-        }]);
+      const response = await fetch('/api/access-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          linkCode: newLinkCode,
+          email: data.email
+        })
+      });
 
-      if (insertError) throw insertError;
+      if (!response.ok) throw new Error("Failed to create access link");
 
       const accessUrl = `${window.location.origin}?code=${newLinkCode}`;
 
@@ -109,12 +107,11 @@ export default function Login() {
       setLinkCode(newLinkCode);
       
       // Decrement uses immediately after creation
-      const { error: updateError } = await supabase
-        .from("access_links")
-        .update({ uses_remaining: 0 })
-        .eq("link_code", newLinkCode);
+      const updateResponse = await fetch(`/api/access-links/${newLinkCode}/use`, {
+        method: 'POST'
+      });
       
-      if (!updateError) {
+      if (updateResponse.ok) {
         setIsLinkExpired(true);
       }
     } catch (error: any) {
