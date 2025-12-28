@@ -1,27 +1,53 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Get environment variables from Vite first, fallback to defaults
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://uocgvjfxfpxzecxplffa.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabaseClient: ReturnType<typeof createClient> | null = null;
 
-// Use a placeholder key initially to avoid errors, will be replaced if config fetched
-let currentKey = supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder';
-let supabaseClient = createClient(supabaseUrl, currentKey);
+async function initializeSupabase() {
+  if (supabaseClient) return supabaseClient;
 
-// Fetch actual config from backend if key is missing
-if (!supabaseAnonKey) {
-  (async () => {
+  let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  // Try to fetch from backend if env vars not available
+  if (!supabaseAnonKey || !supabaseUrl) {
     try {
       const response = await fetch('/api/config');
       const config = await response.json();
-      if (config.supabaseAnonKey && config.supabaseAnonKey !== '') {
-        // Recreate client with actual key
-        supabaseClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
-      }
+      supabaseUrl = config.supabaseUrl || supabaseUrl;
+      supabaseAnonKey = config.supabaseAnonKey || supabaseAnonKey;
     } catch (e) {
       console.warn("Could not fetch Supabase config from backend");
     }
-  })();
+  }
+
+  if (supabaseUrl && supabaseAnonKey) {
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+  } else {
+    throw new Error("Supabase URL and Key are required");
+  }
+
+  return supabaseClient;
 }
 
-export const supabase = supabaseClient;
+export async function getSupabaseClient() {
+  return initializeSupabase();
+}
+
+// For immediate access, try to initialize with env vars
+export let supabase: ReturnType<typeof createClient>;
+try {
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (url && key) {
+    supabase = createClient(url, key);
+  } else {
+    // Initialize async when credentials are available
+    initializeSupabase().then(client => {
+      supabase = client;
+    }).catch(err => {
+      console.error("Failed to initialize Supabase:", err);
+    });
+  }
+} catch (e) {
+  console.error("Error initializing Supabase client:", e);
+}

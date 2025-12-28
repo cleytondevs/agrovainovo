@@ -5,9 +5,9 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://uocgvjfxfpxzecxplffa.supabase.co';
+const supabaseUrl = process.env.SUPABASE_URL;
 
-if (supabaseAnonKey) {
+if (supabaseAnonKey && supabaseUrl) {
   const envLocalPath = path.join(__dirname, '../.env.local');
   const envContent = `VITE_SUPABASE_URL=${supabaseUrl}\nVITE_SUPABASE_ANON_KEY=${supabaseAnonKey}`;
   try {
