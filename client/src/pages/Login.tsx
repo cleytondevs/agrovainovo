@@ -26,11 +26,33 @@ export default function Login() {
   const [hasVisited, setHasVisited] = useState(false);
 
   useEffect(() => {
-    // Simulando identificação por IP via localStorage para persistência no navegador do cliente
-    const visited = localStorage.getItem("wr_agro_visited");
-    if (visited) {
-      setHasVisited(true);
-    }
+    const checkIpVisit = async () => {
+      try {
+        // Busca o IP público do cliente usando um serviço externo gratuito
+        const response = await fetch("https://api.ipify.org?format=json");
+        const { ip } = await response.json();
+        
+        if (ip) {
+          // Verifica se este IP já existe na tabela de visitas do Supabase
+          const { data, error } = await supabase
+            .from("ip_visits")
+            .select("ip")
+            .eq("ip", ip)
+            .single();
+          
+          if (data) {
+            setHasVisited(true);
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao verificar IP:", err);
+        // Fallback para localStorage caso a API de IP falhe
+        const visited = localStorage.getItem("wr_agro_visited");
+        if (visited) setHasVisited(true);
+      }
+    };
+    
+    checkIpVisit();
   }, []);
 
   const authForm = useForm<AuthFormValues>({
@@ -60,6 +82,15 @@ export default function Login() {
 
           if (signUpError) throw signUpError;
 
+          // Registrar o IP após o primeiro cadastro de sucesso
+          try {
+            const res = await fetch("https://api.ipify.org?format=json");
+            const { ip } = await res.json();
+            if (ip) {
+              await supabase.from("ip_visits").insert([{ ip }]);
+            }
+          } catch (e) {}
+
           localStorage.setItem("wr_agro_visited", "true");
           toast({
             title: "Acesso em criação!",
@@ -70,7 +101,6 @@ export default function Login() {
         throw signInError;
       }
 
-      // Se logou com sucesso, marca como visitado para as próximas vezes
       localStorage.setItem("wr_agro_visited", "true");
 
       const isFirstAccess = signInData.user?.user_metadata?.first_access;
