@@ -4,16 +4,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const supabaseAnonKey = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY;
-const supabaseUrl = process.env.SUPABASE_URL;
-
-if (supabaseAnonKey && supabaseUrl) {
-  const envLocalPath = path.join(__dirname, '../.env.local');
-  const envContent = `VITE_SUPABASE_URL=${supabaseUrl}\nVITE_SUPABASE_ANON_KEY=${supabaseAnonKey}`;
-  try {
-    fs.writeFileSync(envLocalPath, envContent, 'utf8');
-  } catch (e) {}
-}
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
