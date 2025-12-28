@@ -4,13 +4,14 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/lib/supabaseClient";
-import { Leaf, Sprout, Tractor, ArrowRight, Loader2 } from "lucide-react";
+import { Sprout, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const authSchema = z.object({
   email: z.string().email("Por favor, insira um endereço de e-mail válido"),
@@ -23,7 +24,8 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [hasVisited, setHasVisited] = useState(false);
+  const [isLinkExpired, setIsLinkExpired] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     const checkIpVisit = async () => {
@@ -39,13 +41,13 @@ export default function Login() {
             .single();
           
           if (data) {
-            setHasVisited(true);
+            setIsLinkExpired(true);
           }
         }
       } catch (err) {
         console.error("Erro ao verificar IP:", err);
-        const visited = localStorage.getItem("wr_agro_visited");
-        if (visited) setHasVisited(true);
+      } finally {
+        setIsChecking(false);
       }
     };
     
@@ -60,112 +62,89 @@ export default function Login() {
   const onAuth = async (data: AuthFormValues) => {
     setIsLoading(true);
     try {
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      // Tenta criar a conta diretamente, já que é o primeiro acesso
+      const { error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
       });
 
-      if (signInError) {
-        if (signInError.message.includes("Invalid login credentials") && !hasVisited) {
-           const { error: signUpError } = await supabase.auth.signUp({
-            email: data.email,
-            password: data.password,
-          });
+      if (signUpError) throw signUpError;
 
-          if (signUpError) throw signUpError;
-
-          try {
-            const res = await fetch("https://api.ipify.org?format=json");
-            const { ip } = await res.json();
-            if (ip) {
-              await supabase.from("ip_visits").insert([{ ip }]);
-            }
-          } catch (e) {}
-
-          localStorage.setItem("wr_agro_visited", "true");
-          toast({
-            title: "Acesso em criação!",
-            description: "Verifique seu e-mail para confirmar seu acesso.",
-          });
-          return;
+      // Registrar o IP para invalidar o link
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const { ip } = await res.json();
+        if (ip) {
+          await supabase.from("ip_visits").insert([{ ip }]);
         }
-        throw signInError;
-      }
-
-      localStorage.setItem("wr_agro_visited", "true");
+      } catch (e) {}
 
       toast({
-        title: "Bem-vindo!",
-        description: "Login realizado com sucesso na WR Agro Tech.",
+        title: "Acesso criado!",
+        description: "Seu acesso foi configurado. Agora utilize o link especial do painel.",
       });
       
-      setLocation("/dashboard");
+      setIsLinkExpired(true);
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erro ao acessar",
-        description: error.message || "Não foi possível realizar o acesso. Verifique seus dados.",
+        title: "Erro ao criar acesso",
+        description: error.message || "Não foi possível configurar seu acesso.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f0f9f4]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isLinkExpired) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#f0f9f4] p-4">
+        <Card className="w-full max-w-md border-none shadow-2xl">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <AlertCircle className="h-12 w-12 text-destructive" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-secondary">Link Expirado</CardTitle>
+            <CardDescription>
+              Este link de configuração de acesso já foi utilizado por este dispositivo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Alert>
+              <AlertTitle>Atenção</AlertTitle>
+              <AlertDescription>
+                Para acessar seu painel, utilize o link oficial enviado anteriormente.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full flex bg-[#f0f9f4] relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center p-16 relative z-10">
-        <div className="max-w-xl">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-white p-3 rounded-2xl shadow-lg shadow-primary/10">
-              <Sprout className="h-10 w-10 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-secondary">WR Agro Tech</h1>
-          </div>
-          
-          <h2 className="text-5xl font-extrabold text-secondary mb-6 leading-tight font-display">
-            Cultivando o <span className="text-primary">Futuro</span> da Agricultura
-          </h2>
-          
-          <p className="text-lg text-secondary/70 mb-10 leading-relaxed max-w-md">
-            Soluções inteligentes para o agronegócio moderno. {hasVisited ? "Acesse seu painel abaixo." : "Crie seu acesso para começar."}
-          </p>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/40 shadow-sm">
-              <span className="flex items-center justify-center h-10 w-10 bg-primary/10 rounded-lg mb-3">
-                <Leaf className="h-6 w-6 text-primary" />
-              </span>
-              <h3 className="font-semibold text-secondary mb-1">Sustentabilidade</h3>
-              <p className="text-sm text-muted-foreground">Tecnologia a favor da natureza.</p>
-            </div>
-            <div className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/40 shadow-sm">
-              <span className="flex items-center justify-center h-10 w-10 bg-accent/10 rounded-lg mb-3">
-                <Tractor className="h-6 w-6 text-accent" />
-              </span>
-              <h3 className="font-semibold text-secondary mb-1">Tecnologia</h3>
-              <p className="text-sm text-muted-foreground">Eficiência e automação no campo.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-12 relative z-10">
-        <Card className="w-full max-w-md shadow-2xl shadow-primary/5 border-none bg-white/95 backdrop-blur-xl">
-          <CardHeader className="space-y-1 text-center pb-2">
-            <div className="lg:hidden flex justify-center mb-4">
+      <div className="w-full flex items-center justify-center p-4 relative z-10">
+        <Card className="w-full max-w-md shadow-2xl border-none bg-white/95 backdrop-blur-xl">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
               <div className="bg-primary/10 p-3 rounded-full">
                 <Sprout className="h-8 w-8 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-secondary">
-              {hasVisited ? "Acessar Painel" : "Acesso ao Painel"}
-            </CardTitle>
-            <CardDescription>
-              {hasVisited ? "Entre com seu e-mail e senha" : "Crie seu login e senha abaixo"}
-            </CardDescription>
+            <CardTitle className="text-2xl font-bold text-secondary">Configurar Primeiro Acesso</CardTitle>
+            <CardDescription>Crie seu e-mail e senha. Este link funcionará apenas uma vez.</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={authForm.handleSubmit(onAuth)} className="space-y-4">
@@ -176,12 +155,8 @@ export default function Login() {
                   placeholder="seu@email.com" 
                   type="email"
                   disabled={isLoading}
-                  data-testid="auth-email"
                   {...authForm.register("email")}
                 />
-                {authForm.formState.errors.email && (
-                  <p className="text-xs text-destructive">{authForm.formState.errors.email.message}</p>
-                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
@@ -190,33 +165,15 @@ export default function Login() {
                   type="password"
                   placeholder="••••••••"
                   disabled={isLoading}
-                  data-testid="auth-password"
                   {...authForm.register("password")}
                 />
-                {authForm.formState.errors.password && (
-                  <p className="text-xs text-destructive">{authForm.formState.errors.password.message}</p>
-                )}
               </div>
               
-              <Button type="submit" className="w-full" size="lg" disabled={isLoading} data-testid="auth-submit">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    {hasVisited ? "Acessar Painel" : "Criar Login e Senha"} <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
+              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Criar Acesso"}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-center border-t border-border/50 pt-6">
-            <p className="text-xs text-muted-foreground text-center">
-              Ao continuar, você concorda com nossos <a href="#" className="underline hover:text-primary">Termos</a> e <a href="#" className="underline hover:text-primary">Privacidade</a>.
-            </p>
-          </CardFooter>
         </Card>
       </div>
     </div>
