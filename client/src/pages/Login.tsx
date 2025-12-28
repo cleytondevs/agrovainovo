@@ -26,7 +26,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLinkExpired, setIsLinkExpired] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [linkCode, setLinkCode] = useState<string | null>(null);
 
   // Generate unique link code
   const generateLinkCode = () => {
@@ -37,17 +36,14 @@ export default function Login() {
   useEffect(() => {
     const checkAccessLink = async () => {
       try {
-        // Get link code from URL or sessionStorage
+        // Get link code from URL (not from sessionStorage after signup)
         const urlParams = new URLSearchParams(window.location.search);
         const codeFromUrl = urlParams.get("code");
-        const codeFromSession = sessionStorage.getItem("accessLinkCode");
-        const code = codeFromUrl || codeFromSession;
 
-        if (code) {
-          setLinkCode(code);
-          
-          // Check if link exists and has uses remaining via backend
-          const response = await fetch(`/api/access-links/${code}`);
+        // If there's a code in the URL, verify it has uses remaining
+        if (codeFromUrl) {
+          setLinkCode(codeFromUrl);
+          const response = await fetch(`/api/access-links/${codeFromUrl}`);
           if (!response.ok) {
             setIsLinkExpired(true);
           } else {
@@ -82,38 +78,13 @@ export default function Login() {
 
       if (signUpError) throw signUpError;
 
-      // Generate new access link with single use via backend
-      const newLinkCode = generateLinkCode();
-      const response = await fetch('/api/access-links', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          linkCode: newLinkCode,
-          email: data.email
-        })
-      });
-
-      if (!response.ok) throw new Error("Failed to create access link");
-
-      const accessUrl = `${window.location.origin}?code=${newLinkCode}`;
-
       toast({
         title: "Acesso criado!",
-        description: `Link: ${accessUrl}`,
+        description: "Bem-vindo ao painel de controle!",
       });
       
-      // Store link code in session and mark as used
-      sessionStorage.setItem("accessLinkCode", newLinkCode);
-      setLinkCode(newLinkCode);
-      
-      // Decrement uses immediately after creation
-      const updateResponse = await fetch(`/api/access-links/${newLinkCode}/use`, {
-        method: 'POST'
-      });
-      
-      if (updateResponse.ok) {
-        setIsLinkExpired(true);
-      }
+      // Navigate to dashboard after successful signup
+      setTimeout(() => setLocation("/dashboard"), 500);
     } catch (error: any) {
       toast({
         variant: "destructive",
