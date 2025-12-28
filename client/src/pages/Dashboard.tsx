@@ -2,24 +2,20 @@ import { supabase } from "@/lib/supabaseClient";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   LogOut, 
   LayoutDashboard, 
-  User, 
   Sprout, 
   CloudSun, 
   Droplets, 
-  Thermometer, 
-  Wind,
-  MapPin,
   TrendingUp,
-  ChevronRight,
-  Menu,
+  MapPin,
+  Wind,
   Bell,
-  Search
+  Menu,
+  ChevronRight
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export default function Dashboard() {
@@ -96,7 +92,7 @@ export default function Dashboard() {
       <div className="p-4 border-t border-border/50">
         <Button variant="ghost" className="w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={handleLogout}>
           <LogOut className="h-5 w-5" />
-          Sair
+          Sair (Log Off)
         </Button>
       </div>
     </div>
@@ -135,6 +131,10 @@ export default function Dashboard() {
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border-2 border-white shadow-sm">
               {userEmail?.[0].toUpperCase()}
             </div>
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-red-600">
+              <LogOut className="h-4 w-4 mr-1" />
+              Sair
+            </Button>
           </div>
         </header>
 
