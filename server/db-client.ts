@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { accessLinks, type AccessLink } from "@shared/schema";
+import { accessLinks, soilAnalysis, type AccessLink, type SoilAnalysis, type InsertSoilAnalysis } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export async function createAccessLink(code: string, email?: string): Promise<AccessLink[]> {
@@ -22,4 +22,13 @@ export async function decrementAccessLink(code: string): Promise<AccessLink[]> {
     .set({ usesRemaining: 0 })
     .where(eq(accessLinks.linkCode, code))
     .returning();
+}
+
+export async function createSoilAnalysis(analysis: InsertSoilAnalysis): Promise<SoilAnalysis> {
+  const result = await db.insert(soilAnalysis).values(analysis).returning();
+  return result[0];
+}
+
+export async function getSoilAnalysisByEmail(userEmail: string): Promise<SoilAnalysis[]> {
+  return await db.select().from(soilAnalysis).where(eq(soilAnalysis.userEmail, userEmail));
 }

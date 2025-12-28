@@ -1,4 +1,5 @@
 import { type User, type InsertUser, type SoilAnalysis, type InsertSoilAnalysis } from "@shared/schema";
+import * as dbClient from "./db-client";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -39,11 +40,18 @@ export class MemStorage implements IStorage {
   }
 
   async createSoilAnalysis(analysis: InsertSoilAnalysis): Promise<SoilAnalysis> {
-    const id = this.currentAnalysisId++;
-    // @ts-ignore
-    const newAnalysis: SoilAnalysis = { ...analysis, id, createdAt: new Date() };
-    this.soilAnalyses.set(id, newAnalysis);
-    return newAnalysis;
+    try {
+      // Try to save to database first
+      return await dbClient.createSoilAnalysis(analysis);
+    } catch (error) {
+      // Fallback to memory storage if database is not available
+      console.warn("Database connection failed, using memory storage for soil analysis", error);
+      const id = this.currentAnalysisId++;
+      // @ts-ignore
+      const newAnalysis: SoilAnalysis = { ...analysis, id, createdAt: new Date() };
+      this.soilAnalyses.set(id, newAnalysis);
+      return newAnalysis;
+    }
   }
 }
 
