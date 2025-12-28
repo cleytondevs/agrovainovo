@@ -80,7 +80,10 @@ export default function Dashboard() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        // Use getSupabaseClient to ensure Supabase is initialized
+        const { getSupabaseClient } = await import("@/lib/supabaseClient");
+        const client = await getSupabaseClient();
+        const { data: { user } } = await client.auth.getUser();
         setUser(user);
       } catch (e) {
         console.error("Auth check failed", e);
@@ -94,13 +97,16 @@ export default function Dashboard() {
   const onLogin = async (data: LoginFormValues) => {
     setIsLoggingIn(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { getSupabaseClient } = await import("@/lib/supabaseClient");
+      const client = await getSupabaseClient();
+      
+      const { error } = await client.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
       if (error) throw error;
       
-      const { data: { user: newUser } } = await supabase.auth.getUser();
+      const { data: { user: newUser } } = await client.auth.getUser();
       setUser(newUser);
       toast({ title: "Bem-vindo!", description: "Login realizado com sucesso." });
     } catch (error: any) {
@@ -111,7 +117,13 @@ export default function Dashboard() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { getSupabaseClient } = await import("@/lib/supabaseClient");
+      const client = await getSupabaseClient();
+      await client.auth.signOut();
+    } catch (e) {
+      console.error("Logout error", e);
+    }
     setUser(null);
     toast({ title: "Até logo!", description: "Log off realizado." });
   };

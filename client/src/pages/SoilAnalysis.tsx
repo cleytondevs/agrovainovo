@@ -67,16 +67,16 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
   const onSubmit = async (data: SoilAnalysisFormValues) => {
     setIsSubmitting(true);
     try {
-      // Prepare the analysis data
+      // Prepare the analysis data (keep as strings for validation)
       const analysisData = {
         fieldName: data.fieldName,
         cropType: data.cropType,
-        pH: data.pH ? parseFloat(data.pH) : null,
-        nitrogen: data.nitrogen ? parseFloat(data.nitrogen) : null,
-        phosphorus: data.phosphorus ? parseFloat(data.phosphorus) : null,
-        potassium: data.potassium ? parseFloat(data.potassium) : null,
-        moisture: data.moisture ? parseFloat(data.moisture) : null,
-        organicMatter: data.organicMatter ? parseFloat(data.organicMatter) : null,
+        pH: data.pH || "",
+        nitrogen: data.nitrogen || "",
+        phosphorus: data.phosphorus || "",
+        potassium: data.potassium || "",
+        moisture: data.moisture || "",
+        organicMatter: data.organicMatter || "",
         notes: data.notes || "",
         userEmail,
         status: "pending",
