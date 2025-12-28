@@ -35,6 +35,7 @@ export async function getSupabaseClient() {
 export let supabase: ReturnType<typeof createClient>;
 initializeSupabase().then(client => {
   supabase = client;
+  console.log("Supabase initialized successfully");
 }).catch(err => {
-  console.error("Failed to initialize Supabase:", err);
+  console.error("Failed to initialize Supabase:", err?.message || JSON.stringify(err));
 });
