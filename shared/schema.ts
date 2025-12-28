@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   username: text("username"),
+  hasAccessed: boolean("has_accessed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

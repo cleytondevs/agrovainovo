@@ -32,28 +32,55 @@ export default function Login() {
   const onAuth = async (data: AuthFormValues) => {
     setIsLoading(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      // Primeiro verificamos se o usuário já acessou através de um convite ou flag
+      // Como estamos usando Supabase Auth puro, podemos usar o user_metadata ou uma tabela de perfil
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
 
       if (signInError) {
         if (signInError.message.includes("Invalid login credentials")) {
-           const { error: signUpError } = await supabase.auth.signUp({
+           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email: data.email,
             password: data.password,
+            options: {
+              data: {
+                first_access: true
+              }
+            }
           });
 
           if (signUpError) throw signUpError;
 
           toast({
             title: "Acesso em criação!",
-            description: "Verifique seu e-mail para confirmar seu acesso.",
+            description: "Verifique seu e-mail para confirmar seu acesso único.",
           });
           return;
         }
         throw signInError;
       }
+
+      // Verificar se é o primeiro acesso baseado nos metadados do Supabase
+      const isFirstAccess = signInData.user?.user_metadata?.first_access;
+      
+      if (!isFirstAccess && signInData.user) {
+        await supabase.auth.signOut();
+        toast({
+          variant: "destructive",
+          title: "Acesso Bloqueado",
+          description: "Este link de acesso só pode ser utilizado uma única vez.",
+        });
+        return;
+      }
+
+      // Marcar como acessado (remover flag de primeiro acesso)
+      await supabase.auth.updateUser({
+        data: { first_access: false }
+      });
 
       toast({
         title: "Bem-vindo!",
