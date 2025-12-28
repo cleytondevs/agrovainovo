@@ -28,8 +28,12 @@ Preferred communication style: Simple, everyday language.
 ### Authentication
 - **Provider**: Supabase Authentication (client-side)
 - **Pattern**: Frontend communicates directly with Supabase for auth
-- **Environment Variables**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+- **Environment Variables**: 
+  - `VITE_SUPABASE_URL` - Public Supabase project URL
+  - `VITE_SUPABASE_ANON_KEY` - Populated from secret `SUPABASE_ANON_KEY`
+  - Secret `SUPABASE_ANON_KEY` - Secure storage for the anon key
 - The backend doesn't handle auth directly; Supabase manages user sessions
+- **Security**: The anon key is stored as a Replit secret and exposed to frontend via environment variable
 
 ### Data Storage
 - **ORM**: Drizzle ORM configured for PostgreSQL
