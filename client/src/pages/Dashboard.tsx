@@ -24,8 +24,10 @@ import {
   Sun,
   ArrowUp,
   ArrowDown,
-  Circle
+  Circle,
+  Beaker
 } from "lucide-react";
+import SoilAnalysis from "./SoilAnalysis";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -191,6 +193,7 @@ export default function Dashboard() {
           variant={activeTab === "overview" ? "secondary" : "ghost"} 
           className="w-full justify-start gap-3 text-base h-12"
           onClick={() => setActiveTab("overview")}
+          data-testid="button-tab-overview"
         >
           <LayoutDashboard className="h-5 w-5" />
           Visão Geral
@@ -199,9 +202,19 @@ export default function Dashboard() {
           variant={activeTab === "calendar" ? "secondary" : "ghost"} 
           className="w-full justify-start gap-3 text-base h-12"
           onClick={() => setActiveTab("calendar")}
+          data-testid="button-tab-calendar"
         >
           <CalendarIcon className="h-5 w-5" />
           Agenda do Agricultor
+        </Button>
+        <Button 
+          variant={activeTab === "soil" ? "secondary" : "ghost"} 
+          className="w-full justify-start gap-3 text-base h-12"
+          onClick={() => setActiveTab("soil")}
+          data-testid="button-tab-soil"
+        >
+          <Beaker className="h-5 w-5" />
+          Análise de Solo
         </Button>
       </nav>
 
@@ -234,7 +247,7 @@ export default function Dashboard() {
               </SheetContent>
             </Sheet>
             <h1 className="text-xl font-bold text-secondary">
-              {activeTab === "calendar" ? "Agenda do Agricultor" : "Painel de Controle"}
+              {activeTab === "calendar" ? "Agenda do Agricultor" : activeTab === "soil" ? "Análise de Solo" : "Painel de Controle"}
             </h1>
           </div>
 
@@ -261,6 +274,12 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2 text-sm opacity-80"><MapPin size={14} /> São Paulo, BR</div>
                   </CardContent>
                 </Card>
+              </div>
+            )}
+
+            {activeTab === "soil" && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <SoilAnalysis userEmail={user?.email} />
               </div>
             )}
 

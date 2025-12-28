@@ -1,4 +1,4 @@
-import { pgTable, text, serial, boolean, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, timestamp, integer, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -38,3 +38,27 @@ export const insertAccessLinkSchema = createInsertSchema(accessLinks).omit({
 
 export type AccessLink = typeof accessLinks.$inferSelect;
 export type InsertAccessLink = z.infer<typeof insertAccessLinkSchema>;
+
+// Soil analysis table
+export const soilAnalysis = pgTable("soil_analysis", {
+  id: serial("id").primaryKey(),
+  userEmail: text("user_email").notNull(),
+  fieldName: text("field_name").notNull(),
+  pH: decimal("pH", { precision: 4, scale: 2 }),
+  nitrogen: decimal("nitrogen", { precision: 6, scale: 2 }),
+  phosphorus: decimal("phosphorus", { precision: 6, scale: 2 }),
+  potassium: decimal("potassium", { precision: 6, scale: 2 }),
+  moisture: decimal("moisture", { precision: 5, scale: 2 }),
+  organicMatter: decimal("organic_matter", { precision: 5, scale: 2 }),
+  status: text("status").default("pending"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSoilAnalysisSchema = createInsertSchema(soilAnalysis).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type SoilAnalysis = typeof soilAnalysis.$inferSelect;
+export type InsertSoilAnalysis = z.infer<typeof insertSoilAnalysisSchema>;

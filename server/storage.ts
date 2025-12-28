@@ -1,18 +1,23 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { type User, type InsertUser, type SoilAnalysis, type InsertSoilAnalysis } from "@shared/schema";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  createSoilAnalysis(analysis: InsertSoilAnalysis): Promise<SoilAnalysis>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
+  private soilAnalyses: Map<number, SoilAnalysis>;
   private currentId: number;
+  private currentAnalysisId: number;
 
   constructor() {
     this.users = new Map();
+    this.soilAnalyses = new Map();
     this.currentId = 1;
+    this.currentAnalysisId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -31,6 +36,14 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id, createdAt: new Date() };
     this.users.set(id, user);
     return user;
+  }
+
+  async createSoilAnalysis(analysis: InsertSoilAnalysis): Promise<SoilAnalysis> {
+    const id = this.currentAnalysisId++;
+    // @ts-ignore
+    const newAnalysis: SoilAnalysis = { ...analysis, id, createdAt: new Date() };
+    this.soilAnalyses.set(id, newAnalysis);
+    return newAnalysis;
   }
 }
 

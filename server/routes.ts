@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { getDb, createAccessLink, checkAccessLink, decrementAccessLink } from "./db-client";
+import { insertSoilAnalysisSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -53,6 +54,27 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to use access link" });
+    }
+  });
+
+  // Soil analysis endpoint
+  app.post('/api/soil-analysis', async (req, res) => {
+    try {
+      const validationResult = insertSoilAnalysisSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: "Validation failed", details: validationResult.error.errors });
+      }
+
+      // Store in database if available, otherwise in memory
+      const analysisData = validationResult.data;
+      await storage.createSoilAnalysis(analysisData);
+      
+      res.json({ 
+        success: true, 
+        message: "Análise de solo enviada com sucesso para revisão" 
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to submit soil analysis" });
     }
   });
 
