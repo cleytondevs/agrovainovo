@@ -44,6 +44,7 @@ export const soilAnalysis = pgTable("soil_analysis", {
   id: serial("id").primaryKey(),
   userEmail: text("user_email").notNull(),
   fieldName: text("field_name").notNull(),
+  cropType: text("crop_type").notNull(),
   pH: decimal("pH", { precision: 4, scale: 2 }),
   nitrogen: decimal("nitrogen", { precision: 6, scale: 2 }),
   phosphorus: decimal("phosphorus", { precision: 6, scale: 2 }),

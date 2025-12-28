@@ -7,11 +7,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Beaker, Send } from "lucide-react";
 
+const CROP_TYPES = [
+  "Milho",
+  "Pastagem",
+  "Café",
+  "Cacau",
+  "Soja",
+  "Trigo",
+  "Arroz",
+  "Cana-de-açúcar",
+  "Algodão",
+  "Feijão",
+  "Hortifrúti",
+  "Frutas",
+  "Outro",
+];
+
 const soilAnalysisSchema = z.object({
   fieldName: z.string().min(1, "Nome do campo é obrigatório"),
+  cropType: z.string().min(1, "Tipo de cultura é obrigatório"),
   pH: z.string().refine((val) => !val || (parseFloat(val) >= 0 && parseFloat(val) <= 14), "pH deve estar entre 0 e 14"),
   nitrogen: z.string().refine((val) => !val || parseFloat(val) >= 0, "Nitrogênio deve ser positivo"),
   phosphorus: z.string().refine((val) => !val || parseFloat(val) >= 0, "Fósforo deve ser positivo"),
@@ -35,6 +53,7 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
     resolver: zodResolver(soilAnalysisSchema),
     defaultValues: {
       fieldName: "",
+      cropType: "",
       pH: "",
       nitrogen: "",
       phosphorus: "",
@@ -51,6 +70,7 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
       // Prepare the analysis data
       const analysisData = {
         fieldName: data.fieldName,
+        cropType: data.cropType,
         pH: data.pH ? parseFloat(data.pH) : null,
         nitrogen: data.nitrogen ? parseFloat(data.nitrogen) : null,
         phosphorus: data.phosphorus ? parseFloat(data.phosphorus) : null,
@@ -106,18 +126,39 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Field Name */}
-              <div className="space-y-2">
-                <Label htmlFor="fieldName" className="font-semibold">Nome do Campo*</Label>
-                <Input
-                  id="fieldName"
-                  placeholder="Ex: Talhão A - Zona 1"
-                  data-testid="input-fieldName"
-                  {...form.register("fieldName")}
-                />
-                {form.formState.errors.fieldName && (
-                  <p className="text-sm text-red-600">{form.formState.errors.fieldName.message}</p>
-                )}
+              {/* Field Name and Crop Type */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fieldName" className="font-semibold">Nome do Campo*</Label>
+                  <Input
+                    id="fieldName"
+                    placeholder="Ex: Talhão A - Zona 1"
+                    data-testid="input-fieldName"
+                    {...form.register("fieldName")}
+                  />
+                  {form.formState.errors.fieldName && (
+                    <p className="text-sm text-red-600">{form.formState.errors.fieldName.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cropType" className="font-semibold">Tipo de Cultura*</Label>
+                  <Select value={form.watch("cropType")} onValueChange={(value) => form.setValue("cropType", value)}>
+                    <SelectTrigger id="cropType" data-testid="select-cropType">
+                      <SelectValue placeholder="Selecione a cultura" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CROP_TYPES.map((crop) => (
+                        <SelectItem key={crop} value={crop}>
+                          {crop}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.cropType && (
+                    <p className="text-sm text-red-600">{form.formState.errors.cropType.message}</p>
+                  )}
+                </div>
               </div>
 
               {/* pH Level */}
