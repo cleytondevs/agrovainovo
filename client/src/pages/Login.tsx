@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/lib/supabaseClient";
-import { Sprout, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import { Sprout, Loader2, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,11 +34,12 @@ export default function Login() {
         const { ip } = await response.json();
         
         if (ip) {
+          // Fallback seguro se a tabela não existir
           const { data, error } = await supabase
             .from("ip_visits")
             .select("ip")
             .eq("ip", ip)
-            .single();
+            .maybeSingle();
           
           if (data) {
             setIsLinkExpired(true);
@@ -62,7 +63,6 @@ export default function Login() {
   const onAuth = async (data: AuthFormValues) => {
     setIsLoading(true);
     try {
-      // Tenta criar a conta diretamente, já que é o primeiro acesso
       const { error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -70,7 +70,6 @@ export default function Login() {
 
       if (signUpError) throw signUpError;
 
-      // Registrar o IP para invalidar o link
       try {
         const res = await fetch("https://api.ipify.org?format=json");
         const { ip } = await res.json();
@@ -81,7 +80,7 @@ export default function Login() {
 
       toast({
         title: "Acesso criado!",
-        description: "Seu acesso foi configurado. Agora utilize o link especial do painel.",
+        description: "Seu acesso foi configurado. Agora utilize o link do painel.",
       });
       
       setIsLinkExpired(true);
@@ -121,7 +120,7 @@ export default function Login() {
             <Alert>
               <AlertTitle>Atenção</AlertTitle>
               <AlertDescription>
-                Para acessar seu painel, utilize o link oficial enviado anteriormente.
+                Para acessar seu painel, utilize o link oficial da WR Agro Tech.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -143,8 +142,8 @@ export default function Login() {
                 <Sprout className="h-8 w-8 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-secondary">Configurar Primeiro Acesso</CardTitle>
-            <CardDescription>Crie seu e-mail e senha. Este link funcionará apenas uma vez.</CardDescription>
+            <CardTitle className="text-2xl font-bold text-secondary">Configurar Acesso</CardTitle>
+            <CardDescription>Crie seu e-mail e senha (único acesso).</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={authForm.handleSubmit(onAuth)} className="space-y-4">
