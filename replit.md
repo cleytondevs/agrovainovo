@@ -18,6 +18,7 @@ Preferred communication style: Simple, everyday language.
 - **Styling**: Tailwind CSS with custom Agro Tech theme (green primary, blue secondary, earth accents)
 - **Form Handling**: React Hook Form with Zod validation
 - **Fonts**: Outfit (display) and Plus Jakarta Sans (body)
+- **Access Control**: Link-based setup with usage-based expiration (1 use per link)
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript

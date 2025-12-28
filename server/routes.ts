@@ -13,5 +13,13 @@ export async function registerRoutes(
     res.json({ status: 'ok' });
   });
 
+  // Serve config with Supabase credentials
+  app.get('/api/config', (req, res) => {
+    res.json({
+      supabaseUrl: process.env.VITE_SUPABASE_URL || 'https://uocgvjfxfpxzecxplffa.supabase.co',
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || ''
+    });
+  });
+
   return httpServer;
 }
