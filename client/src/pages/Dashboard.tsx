@@ -10,7 +10,7 @@ import {
   LayoutDashboard, 
   Sprout, 
   CloudSun, 
-  Calendar,
+  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -18,7 +18,13 @@ import {
   Menu,
   MapPin,
   TrendingUp,
-  CheckCircle2
+  CheckCircle2,
+  Leaf,
+  Moon,
+  Sun,
+  ArrowUp,
+  ArrowDown,
+  Circle
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
@@ -35,37 +41,23 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// Agenda de dicas agronômicas por mês
-const agronomicTips: Record<string, string[]> = {
-  "Janeiro": ["Preparo do solo para safrinha", "Monitoramento de lagartas na soja", "Controle de invasoras", "Planejamento de fertilização"],
-  "Fevereiro": ["Início da colheita de soja", "Plantio de milho safrinha", "Atenção ao percevejo", "Manutenção de colheitadeiras"],
-  "Março": ["Finalização do plantio do milho", "Controle de ferrugem asiática", "Monitoramento hídrico", "Análise de sementes"],
-  "Abril": ["Monitoramento de milho safrinha", "Vazio sanitário da soja", "Manutenção de sistemas de irrigação", "Adubação de cobertura"],
-  "Maio": ["Controle de pragas no milho", "Planejamento da safra de verão", "Revisão de estoque de insumos", "Atenção a geadas precoces"],
-  "Junho": ["Início da colheita do milho", "Preparo de solo para trigo", "Cuidado com doenças de solo", "Análise de mercado"],
-  "Julho": ["Colheita intensiva de milho", "Plantio de culturas de inverno", "Manutenção preventiva de frota", "Planejamento financeiro"],
-  "Agosto": ["Preparo antecipado para soja", "Tratamento de sementes", "Calagem e gessagem", "Acompanhamento climático"],
-  "Setembro": ["Início do plantio de soja", "Atenção à umidade do solo", "Controle de plantas daninhas", "Regulagem de plantadeiras"],
-  "Outubro": ["Plantio intensivo de soja", "Monitoramento de emergência de plantas", "Adubação nitrogenada", "Gestão de mão de obra"],
-  "Novembro": ["Tratos culturais na soja", "Controle preventivo de fungos", "Monitoramento de pragas iniciais", "Gestão de pulverização"],
-  "Dezembro": ["Fechamento de entrelinhas na soja", "Atenção ao estresse hídrico", "Planejamento da colheita", "Monitoramento de doenças foliares"]
+// Tipos de Manejo
+const MANEJO = {
+  FOLHAS: { label: "Folhas", icon: Leaf, color: "text-green-600" },
+  RAIZES: { label: "Raízes", icon: Sprout, color: "text-orange-600" },
+  FRUTOS: { label: "Frutos", icon: Circle, color: "text-red-600" },
+  FLORES: { label: "Flores", icon: Sun, color: "text-yellow-600" },
 };
 
-// Dicas específicas por dia (Exemplo para ilustrar a funcionalidade)
-const getDailyTip = (day: number, month: string) => {
-  const tips = [
-    "Ideal para vistoria técnica de campo.",
-    "Ótimo dia para aplicação de defensivos.",
-    "Verificar níveis de umidade do solo.",
-    "Realizar manutenção preventiva de maquinário.",
-    "Dia recomendado para análise foliar.",
-    "Planejar logística de transporte de safra.",
-    "Monitorar pressão de pragas e doenças."
-  ];
-  return tips[day % tips.length];
+// Fases da Lua
+const LUNAR_PHASES = {
+  MINGUANTE: { label: "Minguante", icon: Moon, style: "rotate-180" },
+  NOVA: { label: "Nova", icon: Circle, style: "fill-current" },
+  CRESCENTE: { label: "Crescente", icon: Moon, style: "" },
+  CHEIA: { label: "Cheia", icon: Circle, style: "" },
 };
 
-const months = Object.keys(agronomicTips);
+const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -73,7 +65,7 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("calendar");
   const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
 
   const loginForm = useForm<LoginFormValues>({
@@ -162,7 +154,6 @@ export default function Dashboard() {
   }
 
   const currentMonth = months[currentMonthIndex];
-  const tips = agronomicTips[currentMonth];
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -187,7 +178,7 @@ export default function Dashboard() {
           className="w-full justify-start gap-3 text-base h-12"
           onClick={() => setActiveTab("calendar")}
         >
-          <Calendar className="h-5 w-5" />
+          <CalendarIcon className="h-5 w-5" />
           Agenda do Agricultor
         </Button>
       </nav>
@@ -195,7 +186,7 @@ export default function Dashboard() {
       <div className="p-4 border-t border-border/50">
         <Button variant="ghost" className="w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={handleLogout}>
           <LogOut className="h-5 w-5" />
-          Sair (Log Off)
+          Sair
         </Button>
       </div>
     </div>
@@ -237,7 +228,7 @@ export default function Dashboard() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-          <div className="max-w-6xl mx-auto space-y-8">
+          <div className="max-w-7xl mx-auto space-y-8">
             {activeTab === "overview" && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card className="border-none shadow-md bg-gradient-to-br from-blue-500 to-blue-600 text-white overflow-hidden relative">
@@ -252,77 +243,99 @@ export default function Dashboard() {
             )}
 
             {activeTab === "calendar" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <Card className="border-none shadow-xl bg-white overflow-hidden">
-                  <CardHeader className="bg-primary/5 border-b border-primary/10 p-6">
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Calendário Principal */}
+                <Card className="xl:col-span-3 border-none shadow-xl bg-white overflow-hidden">
+                  <CardHeader className="bg-[#7aa874] text-white p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="bg-primary text-white p-3 rounded-xl shadow-lg shadow-primary/20">
-                          <Calendar className="h-6 w-6" />
+                        <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                          <CalendarIcon className="h-6 w-6" />
                         </div>
                         <div>
-                          <CardTitle className="text-2xl text-secondary">Agenda Anual {new Date().getFullYear()}</CardTitle>
-                          <CardDescription>Planejamento estratégico personalizado</CardDescription>
+                          <CardTitle className="text-2xl font-bold uppercase tracking-widest">{currentMonth} {new Date().getFullYear()}</CardTitle>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 bg-white p-1 rounded-lg border shadow-sm">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => setCurrentMonthIndex((prev) => (prev === 0 ? 11 : prev - 1))}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <div className="px-4 font-bold text-secondary min-w-[120px] text-center">
-                          {currentMonth}
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => setCurrentMonthIndex((prev) => (prev === 11 ? 0 : prev + 1))}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
+                      <div className="flex items-center gap-2 bg-white/10 p-1 rounded-lg backdrop-blur-sm">
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setCurrentMonthIndex((p) => (p === 0 ? 11 : p - 1))}><ChevronLeft /></Button>
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setCurrentMonthIndex((p) => (p === 11 ? 0 : p + 1))}><ChevronRight /></Button>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <ScrollArea className="h-[600px] p-6">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
-                        {Array.from({ length: 31 }).map((_, i) => (
-                          <Card key={i} className="border border-slate-100 hover:border-primary/30 transition-all bg-slate-50/30 group">
-                            <CardContent className="p-3">
-                              <div className="flex justify-between items-start mb-2">
-                                <span className="text-sm font-bold text-slate-400 group-hover:text-primary transition-colors">{i + 1}</span>
-                                <CheckCircle2 className="h-3 w-3 text-slate-200 group-hover:text-primary/40" />
-                              </div>
-                              <p className="text-[10px] leading-tight text-slate-600 font-medium italic">
-                                {getDailyTip(i, currentMonth)}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-
-                      <div className="space-y-4">
-                        <h3 className="font-bold text-secondary flex items-center gap-2 text-lg">
-                          <Info className="h-5 w-5 text-primary" />
-                          Principais Ações de {currentMonth}
-                        </h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          {tips.map((tip, index) => (
-                            <div key={index} className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-                              <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-primary/5 text-primary font-bold">
-                                {index + 1}
-                              </div>
-                              <p className="text-secondary/80 font-semibold group-hover:text-secondary transition-colors">{tip}</p>
+                    <div className="grid grid-cols-7 text-center bg-[#7aa874]/90 text-white font-bold text-xs py-2 uppercase tracking-tighter">
+                      <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                    </div>
+                    <div className="grid grid-cols-7 gap-px bg-slate-200">
+                      {Array.from({ length: 35 }).map((_, i) => {
+                        const day = i - 3; // Simulação de início do mês
+                        if (day < 1 || day > 31) return <div key={i} className="bg-slate-50 min-h-[100px]"></div>;
+                        
+                        // Lógica visual simulada baseada na imagem
+                        const isLunarMovement = (day >= 12 && day <= 25);
+                        const lunarPhase = day === 6 ? "MINGUANTE" : day === 13 ? "NOVA" : day === 20 ? "CRESCENTE" : day === 28 ? "CHEIA" : null;
+                        const manejo = day % 4 === 0 ? "FOLHAS" : day % 4 === 1 ? "RAIZES" : day % 4 === 2 ? "FRUTOS" : "FLORES";
+                        
+                        return (
+                          <div key={i} className={`bg-white min-h-[100px] p-2 flex flex-col justify-between relative group ${isLunarMovement ? 'bg-orange-50/50' : ''}`}>
+                            {isLunarMovement && <div className="absolute inset-x-0 top-0 h-1 bg-orange-400"></div>}
+                            <div className="flex justify-between items-start">
+                              <span className={`text-lg font-black ${day === 1 || day === 11 ? 'text-green-600' : 'text-slate-700'}`}>{day.toString().padStart(2, '0')}</span>
+                              {lunarPhase && (
+                                <div className="flex flex-col items-center">
+                                  {lunarPhase === "MINGUANTE" && <Moon className="h-4 w-4 text-slate-400 rotate-180" />}
+                                  {lunarPhase === "NOVA" && <Circle className="h-4 w-4 text-green-500 fill-current" />}
+                                  {lunarPhase === "CRESCENTE" && <Moon className="h-4 w-4 text-slate-400" />}
+                                  {lunarPhase === "CHEIA" && <Circle className="h-4 w-4 text-slate-300" />}
+                                </div>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    </ScrollArea>
+                            <div className="flex gap-1 mt-auto">
+                               {day % 3 === 0 && <Leaf className="h-4 w-4 text-green-600" />}
+                               {day % 5 === 0 && <Sprout className="h-4 w-4 text-orange-600" />}
+                               {day % 7 === 0 && <Circle className="h-4 w-4 text-red-600" />}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </CardContent>
                 </Card>
+
+                {/* Legenda Lateral */}
+                <div className="space-y-6">
+                  <Card className="border-none shadow-lg bg-[#fdf6ec]">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-black text-[#b45309] uppercase">Movimento Lunar</CardTitle></CardHeader>
+                    <CardContent className="space-y-4 text-xs">
+                      <div className="flex gap-3">
+                        <div className="bg-slate-300 p-1 rounded-sm h-fit"><Moon className="h-4 w-4 text-white rotate-180" /></div>
+                        <div><p className="font-bold text-slate-700">Ascendente</p><p className="text-slate-500">Colheita de frutos, flores e ervas medicinais.</p></div>
+                      </div>
+                      <div className="flex gap-3">
+                        <div className="bg-orange-400 p-1 rounded-sm h-fit"><Moon className="h-4 w-4 text-white" /></div>
+                        <div><p className="font-bold text-slate-700">Descendente</p><p className="text-slate-500">Semeaduras, transplante e podas.</p></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg bg-white">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-black text-green-700 uppercase">Manejo Ideal</CardTitle></CardHeader>
+                    <CardContent className="space-y-3 text-xs">
+                      <div className="flex items-center gap-2 font-bold"><Leaf className="h-4 w-4 text-green-600" /> Folhas</div>
+                      <div className="flex items-center gap-2 font-bold"><Sprout className="h-4 w-4 text-orange-600" /> Raízes</div>
+                      <div className="flex items-center gap-2 font-bold"><Circle className="h-4 w-4 text-red-600" /> Frutos</div>
+                      <div className="flex items-center gap-2 font-bold"><Sun className="h-4 w-4 text-yellow-600" /> Flores</div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg bg-white">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-black text-slate-700 uppercase">Datas Importantes</CardTitle></CardHeader>
+                    <CardContent className="space-y-2 text-xs">
+                      <div className="flex gap-2"><Badge className="bg-green-600">01</Badge> <span>Feriado Internacional</span></div>
+                      <div className="flex gap-2"><Badge className="bg-green-600">11</Badge> <span>Dia do Combate à Poluição</span></div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             )}
           </div>
