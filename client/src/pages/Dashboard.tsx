@@ -66,7 +66,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [activeTab, setActiveTab] = useState("calendar");
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0); // Start from January 2026
+  const CALENDAR_YEAR = 2026;
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -154,6 +155,27 @@ export default function Dashboard() {
   }
 
   const currentMonth = months[currentMonthIndex];
+  
+  // Helper function to get calendar days
+  const getCalendarDays = (monthIndex: number, year: number) => {
+    const firstDay = new Date(year, monthIndex, 1).getDay();
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const days = [];
+    
+    // Add empty cells for days before month starts
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+    
+    // Add days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    
+    return days;
+  };
+  
+  const calendarDays = getCalendarDays(currentMonthIndex, CALENDAR_YEAR);
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -253,7 +275,7 @@ export default function Dashboard() {
                           <CalendarIcon className="h-6 w-6" />
                         </div>
                         <div>
-                          <CardTitle className="text-2xl font-bold uppercase tracking-widest">{currentMonth} {new Date().getFullYear()}</CardTitle>
+                          <CardTitle className="text-2xl font-bold uppercase tracking-widest">{currentMonth} {CALENDAR_YEAR}</CardTitle>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-white/10 p-1 rounded-lg backdrop-blur-sm">
@@ -267,14 +289,12 @@ export default function Dashboard() {
                       <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
                     </div>
                     <div className="grid grid-cols-7 gap-px bg-slate-200">
-                      {Array.from({ length: 35 }).map((_, i) => {
-                        const day = i - 3; // Simulação de início do mês
-                        if (day < 1 || day > 31) return <div key={i} className="bg-slate-50 min-h-[100px]"></div>;
+                      {calendarDays.map((day, i) => {
+                        if (day === null) return <div key={i} className="bg-slate-50 min-h-[100px]"></div>;
                         
                         // Lógica visual simulada baseada na imagem
                         const isLunarMovement = (day >= 12 && day <= 25);
                         const lunarPhase = day === 6 ? "MINGUANTE" : day === 13 ? "NOVA" : day === 20 ? "CRESCENTE" : day === 28 ? "CHEIA" : null;
-                        const manejo = day % 4 === 0 ? "FOLHAS" : day % 4 === 1 ? "RAIZES" : day % 4 === 2 ? "FRUTOS" : "FLORES";
                         
                         return (
                           <div key={i} className={`bg-white min-h-[100px] p-2 flex flex-col justify-between relative group ${isLunarMovement ? 'bg-orange-50/50' : ''}`}>
