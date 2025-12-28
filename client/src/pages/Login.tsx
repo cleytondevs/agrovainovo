@@ -28,12 +28,10 @@ export default function Login() {
   useEffect(() => {
     const checkIpVisit = async () => {
       try {
-        // Busca o IP público do cliente usando um serviço externo gratuito
         const response = await fetch("https://api.ipify.org?format=json");
         const { ip } = await response.json();
         
         if (ip) {
-          // Verifica se este IP já existe na tabela de visitas do Supabase
           const { data, error } = await supabase
             .from("ip_visits")
             .select("ip")
@@ -46,7 +44,6 @@ export default function Login() {
         }
       } catch (err) {
         console.error("Erro ao verificar IP:", err);
-        // Fallback para localStorage caso a API de IP falhe
         const visited = localStorage.getItem("wr_agro_visited");
         if (visited) setHasVisited(true);
       }
@@ -73,16 +70,10 @@ export default function Login() {
            const { error: signUpError } = await supabase.auth.signUp({
             email: data.email,
             password: data.password,
-            options: {
-              data: {
-                first_access: true
-              }
-            }
           });
 
           if (signUpError) throw signUpError;
 
-          // Registrar o IP após o primeiro cadastro de sucesso
           try {
             const res = await fetch("https://api.ipify.org?format=json");
             const { ip } = await res.json();
@@ -94,7 +85,7 @@ export default function Login() {
           localStorage.setItem("wr_agro_visited", "true");
           toast({
             title: "Acesso em criação!",
-            description: "Verifique seu e-mail para confirmar seu acesso único.",
+            description: "Verifique seu e-mail para confirmar seu acesso.",
           });
           return;
         }
@@ -102,22 +93,6 @@ export default function Login() {
       }
 
       localStorage.setItem("wr_agro_visited", "true");
-
-      const isFirstAccess = signInData.user?.user_metadata?.first_access;
-      
-      if (!isFirstAccess && signInData.user) {
-        await supabase.auth.signOut();
-        toast({
-          variant: "destructive",
-          title: "Acesso Bloqueado",
-          description: "Este link de acesso só pode ser utilizado uma única vez.",
-        });
-        return;
-      }
-
-      await supabase.auth.updateUser({
-        data: { first_access: false }
-      });
 
       toast({
         title: "Bem-vindo!",
@@ -155,17 +130,21 @@ export default function Login() {
           </h2>
           
           <p className="text-lg text-secondary/70 mb-10 leading-relaxed max-w-md">
-            Soluções inteligentes para o agronegócio moderno. {hasVisited ? "Acesse seu painel abaixo." : "Crie seu acesso único para começar."}
+            Soluções inteligentes para o agronegócio moderno. {hasVisited ? "Acesse seu painel abaixo." : "Crie seu acesso para começar."}
           </p>
 
           <div className="grid grid-cols-2 gap-6">
             <div className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/40 shadow-sm">
-              <Leaf className="h-6 w-6 text-primary mb-3" />
+              <span className="flex items-center justify-center h-10 w-10 bg-primary/10 rounded-lg mb-3">
+                <Leaf className="h-6 w-6 text-primary" />
+              </span>
               <h3 className="font-semibold text-secondary mb-1">Sustentabilidade</h3>
               <p className="text-sm text-muted-foreground">Tecnologia a favor da natureza.</p>
             </div>
             <div className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/40 shadow-sm">
-              <Tractor className="h-6 w-6 text-accent mb-3" />
+              <span className="flex items-center justify-center h-10 w-10 bg-accent/10 rounded-lg mb-3">
+                <Tractor className="h-6 w-6 text-accent" />
+              </span>
               <h3 className="font-semibold text-secondary mb-1">Tecnologia</h3>
               <p className="text-sm text-muted-foreground">Eficiência e automação no campo.</p>
             </div>
