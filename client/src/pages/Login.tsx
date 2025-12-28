@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,6 +23,15 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [hasVisited, setHasVisited] = useState(false);
+
+  useEffect(() => {
+    // Simulando identificação por IP via localStorage para persistência no navegador do cliente
+    const visited = localStorage.getItem("wr_agro_visited");
+    if (visited) {
+      setHasVisited(true);
+    }
+  }, []);
 
   const authForm = useForm<AuthFormValues>({
     resolver: zodResolver(authSchema),
@@ -32,18 +41,14 @@ export default function Login() {
   const onAuth = async (data: AuthFormValues) => {
     setIsLoading(true);
     try {
-      // Primeiro verificamos se o usuário já acessou através de um convite ou flag
-      // Como estamos usando Supabase Auth puro, podemos usar o user_metadata ou uma tabela de perfil
-      const { data: { user } } = await supabase.auth.getUser();
-      
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
 
       if (signInError) {
-        if (signInError.message.includes("Invalid login credentials")) {
-           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        if (signInError.message.includes("Invalid login credentials") && !hasVisited) {
+           const { error: signUpError } = await supabase.auth.signUp({
             email: data.email,
             password: data.password,
             options: {
@@ -55,6 +60,7 @@ export default function Login() {
 
           if (signUpError) throw signUpError;
 
+          localStorage.setItem("wr_agro_visited", "true");
           toast({
             title: "Acesso em criação!",
             description: "Verifique seu e-mail para confirmar seu acesso único.",
@@ -64,7 +70,9 @@ export default function Login() {
         throw signInError;
       }
 
-      // Verificar se é o primeiro acesso baseado nos metadados do Supabase
+      // Se logou com sucesso, marca como visitado para as próximas vezes
+      localStorage.setItem("wr_agro_visited", "true");
+
       const isFirstAccess = signInData.user?.user_metadata?.first_access;
       
       if (!isFirstAccess && signInData.user) {
@@ -77,7 +85,6 @@ export default function Login() {
         return;
       }
 
-      // Marcar como acessado (remover flag de primeiro acesso)
       await supabase.auth.updateUser({
         data: { first_access: false }
       });
@@ -118,7 +125,7 @@ export default function Login() {
           </h2>
           
           <p className="text-lg text-secondary/70 mb-10 leading-relaxed max-w-md">
-            Soluções inteligentes para o agronegócio moderno. Crie seu acesso abaixo para começar.
+            Soluções inteligentes para o agronegócio moderno. {hasVisited ? "Acesse seu painel abaixo." : "Crie seu acesso único para começar."}
           </p>
 
           <div className="grid grid-cols-2 gap-6">
@@ -144,8 +151,12 @@ export default function Login() {
                 <Sprout className="h-8 w-8 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-secondary">Acesso ao Painel</CardTitle>
-            <CardDescription>Crie seu login e senha abaixo</CardDescription>
+            <CardTitle className="text-2xl font-bold text-secondary">
+              {hasVisited ? "Acessar Painel" : "Acesso ao Painel"}
+            </CardTitle>
+            <CardDescription>
+              {hasVisited ? "Entre com seu e-mail e senha" : "Crie seu login e senha abaixo"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={authForm.handleSubmit(onAuth)} className="space-y-4">
@@ -186,7 +197,7 @@ export default function Login() {
                   </>
                 ) : (
                   <>
-                    Criar Login e Senha <ArrowRight className="ml-2 h-4 w-4" />
+                    {hasVisited ? "Acessar Painel" : "Criar Login e Senha"} <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
