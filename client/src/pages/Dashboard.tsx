@@ -124,19 +124,38 @@ export default function Dashboard() {
       if (user && activeTab === "overview") {
         fetchNews();
         try {
-          // Detectar localização por IP usando freeipapi.com
-          const locRes = await fetch('https://freeipapi.com/api/json');
-          const locData = await locRes.json();
-          if (locData.latitude && locData.longitude) {
-            // Se tivermos as coordenadas, buscamos o clima real para essa região
-            fetchWeather(locData.latitude, locData.longitude, locData.cityName);
+          // Tentar primeiro geolocalização do navegador (mais precisa)
+          if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                const { latitude, longitude } = position.coords;
+                // Usar as coordenadas reais para buscar o clima e cidade
+                fetchWeather(latitude, longitude, "Localização Atual");
+              },
+              async (error) => {
+                console.warn("Navegador negou geolocalização, tentando IP", error);
+                // Fallback para IP se o navegador negar
+                const locRes = await fetch('https://freeipapi.com/api/json');
+                const locData = await locRes.json();
+                if (locData.latitude && locData.longitude) {
+                  fetchWeather(locData.latitude, locData.longitude, locData.cityName);
+                } else {
+                  fetchWeather(-23.5505, -46.6333, "São Paulo");
+                }
+              }
+            );
           } else {
-            // Fallback caso a API de IP não retorne coordenadas
-            fetchWeather(-23.5505, -46.6333, "São Paulo");
+            // Fallback direto para IP se não houver suporte a geolocalização
+            const locRes = await fetch('https://freeipapi.com/api/json');
+            const locData = await locRes.json();
+            if (locData.latitude && locData.longitude) {
+              fetchWeather(locData.latitude, locData.longitude, locData.cityName);
+            } else {
+              fetchWeather(-23.5505, -46.6333, "São Paulo");
+            }
           }
         } catch (e) {
           console.error("Location detection failed", e);
-          // Fallback para São Paulo em caso de erro na detecção
           fetchWeather(-23.5505, -46.6333, "São Paulo");
         }
       }
