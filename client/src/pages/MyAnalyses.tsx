@@ -50,8 +50,28 @@ export default function MyAnalyses() {
   };
 
   const handleDownloadFile = (fileUrl: string) => {
-    // Para download real, seria feito por um storage integrado
-    toast({ title: "Download", description: `Arquivo: ${fileUrl}` });
+    try {
+      // Create a link and trigger download
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.setAttribute("download", fileUrl.split("/").pop() || "analise.pdf");
+      link.target = "_blank"; // Open in new tab if it can't be downloaded directly
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({ 
+        title: "Download iniciado", 
+        description: "O download do seu relatório começou." 
+      });
+    } catch (error) {
+      console.error("Erro ao baixar arquivo:", error);
+      toast({ 
+        variant: "destructive",
+        title: "Erro no download", 
+        description: "Não foi possível baixar o arquivo no momento." 
+      });
+    }
   };
 
   const statusConfig = {
