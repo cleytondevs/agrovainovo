@@ -16,9 +16,10 @@ import type { SoilAnalysis } from "@shared/schema";
 import { supabase } from "@/lib/supabaseClient";
 
 function generatePassword(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  // Use only alphanumeric characters (no special chars to avoid encoding/SQL issues)
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let password = "";
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 16; i++) {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return password;
