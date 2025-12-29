@@ -1,6 +1,10 @@
 import { db } from "./db";
-import { accessLinks, soilAnalysis, type AccessLink, type SoilAnalysis, type InsertSoilAnalysis } from "@shared/schema";
+import { accessLinks, soilAnalysis, users, type AccessLink, type SoilAnalysis, type InsertSoilAnalysis, type User } from "@shared/schema";
 import { eq } from "drizzle-orm";
+
+export async function getAllUsers(): Promise<User[]> {
+  return await db.select().from(users);
+}
 
 export async function createAccessLink(code: string, email?: string): Promise<AccessLink[]> {
   return await db.insert(accessLinks).values({

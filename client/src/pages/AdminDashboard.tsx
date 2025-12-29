@@ -50,6 +50,11 @@ const AdminDashboard = () => {
     enabled: isAuthenticated,
   });
 
+  const { data: users = [], isLoading: isLoadingUsers } = useQuery<any[]>({
+    queryKey: ["/api/users/all"],
+    enabled: isAuthenticated,
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) =>
       apiRequest("PATCH", `/api/soil-analysis/${id}/status`, { status }),
@@ -151,6 +156,47 @@ const AdminDashboard = () => {
               {config.label} ({analyses.filter((a) => a.status === status).length})
             </Button>
           ))}
+        </div>
+
+        {/* Users List */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 dark:text-white">Clientes Cadastrados</h2>
+          {isLoadingUsers ? (
+            <Card><CardContent className="p-4">Carregando usuários...</CardContent></Card>
+          ) : users.length === 0 ? (
+            <Card><CardContent className="p-4">Nenhum usuário cadastrado</CardContent></Card>
+          ) : (
+            <Card>
+              <CardContent className="p-0">
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-slate-50 dark:bg-slate-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold">Email</th>
+                      <th className="px-4 py-3 text-left font-semibold">Nome</th>
+                      <th className="px-4 py-3 text-left font-semibold">Status</th>
+                      <th className="px-4 py-3 text-left font-semibold">Data Cadastro</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((u) => (
+                      <tr key={u.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <td className="px-4 py-3">{u.email}</td>
+                        <td className="px-4 py-3 font-medium">{u.username || "Não informado"}</td>
+                        <td className="px-4 py-3">
+                          <Badge className={u.hasAccessed ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
+                            {u.hasAccessed ? "Ativo" : "Pendente"}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">
+                          {u.createdAt ? new Date(u.createdAt).toLocaleDateString("pt-BR") : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Table */}

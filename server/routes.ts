@@ -138,5 +138,15 @@ export async function registerRoutes(
     }
   });
 
+  // Get all users (admin only)
+  app.get('/api/users/all', async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to fetch users" });
+    }
+  });
+
   return httpServer;
 }

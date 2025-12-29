@@ -10,6 +10,7 @@ export interface IStorage {
   getUserSoilAnalysis(userEmail: string): Promise<SoilAnalysis[]>;
   updateSoilAnalysisStatus(id: number, status: string): Promise<SoilAnalysis>;
   updateSoilAnalysisWithComments(id: number, status: string, adminComments: string, adminFileUrls: string): Promise<SoilAnalysis>;
+  getAllUsers(): Promise<User[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -23,6 +24,15 @@ export class MemStorage implements IStorage {
     this.soilAnalyses = new Map();
     this.currentId = 1;
     this.currentAnalysisId = 1;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    try {
+      return await dbClient.getAllUsers();
+    } catch (error) {
+      console.warn("Failed to fetch all users from database, returning memory storage", error);
+      return Array.from(this.users.values());
+    }
   }
 
   async getUser(id: number): Promise<User | undefined> {
