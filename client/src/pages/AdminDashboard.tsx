@@ -303,40 +303,65 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Users List */}
+            {/* Logins/Clients List */}
             <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4 dark:text-white">Clientes Cadastrados</h2>
-          {isLoadingUsers ? (
-            <Card><CardContent className="p-4">Carregando usuários...</CardContent></Card>
-          ) : users.length === 0 ? (
-            <Card><CardContent className="p-4">Nenhum usuário cadastrado</CardContent></Card>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold dark:text-white">Clientes Cadastrados ({logins.length})</h2>
+          </div>
+          {isLoadingLogins ? (
+            <Card><CardContent className="p-4">Carregando clientes...</CardContent></Card>
+          ) : logins.length === 0 ? (
+            <Card><CardContent className="p-4">Nenhum cliente cadastrado</CardContent></Card>
           ) : (
             <Card>
               <CardContent className="p-0">
                 <table className="w-full text-sm">
                   <thead className="border-b bg-slate-50 dark:bg-slate-800">
                     <tr>
+                      <th className="px-4 py-3 text-left font-semibold">Nome Cliente</th>
                       <th className="px-4 py-3 text-left font-semibold">Email</th>
-                      <th className="px-4 py-3 text-left font-semibold">Nome</th>
+                      <th className="px-4 py-3 text-left font-semibold">Plano</th>
                       <th className="px-4 py-3 text-left font-semibold">Status</th>
-                      <th className="px-4 py-3 text-left font-semibold">Data Cadastro</th>
+                      <th className="px-4 py-3 text-left font-semibold">Expira em</th>
+                      <th className="px-4 py-3 text-left font-semibold">Dias Restantes</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((u) => (
-                      <tr key={u.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
-                        <td className="px-4 py-3">{u.email}</td>
-                        <td className="px-4 py-3 font-medium">{u.username || "Não informado"}</td>
-                        <td className="px-4 py-3">
-                          <Badge className={u.hasAccessed ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
-                            {u.hasAccessed ? "Ativo" : "Pendente"}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">
-                          {u.createdAt ? new Date(u.createdAt).toLocaleDateString("pt-BR") : "-"}
-                        </td>
-                      </tr>
-                    ))}
+                    {logins.map((login: any) => {
+                      const expiresAt = login.expires_at ? new Date(login.expires_at) : null;
+                      const today = new Date();
+                      const daysRemaining = expiresAt ? Math.ceil((expiresAt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : -1;
+                      const isExpired = daysRemaining < 0;
+                      
+                      return (
+                        <tr key={login.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
+                          <td className="px-4 py-3 font-medium">{login.clientName || "Sem nome"}</td>
+                          <td className="px-4 py-3">{login.email}</td>
+                          <td className="px-4 py-3">
+                            <Badge variant="outline">
+                              {login.plan === "1_month" ? "1 mês" : login.plan === "3_months" ? "3 meses" : "6 meses"}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge className={login.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                              {login.status === "active" ? "Ativo" : "Inativo"}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                            {expiresAt ? expiresAt.toLocaleDateString("pt-BR") : "-"}
+                          </td>
+                          <td className="px-4 py-3">
+                            {isExpired ? (
+                              <Badge className="bg-red-100 text-red-800">Expirado</Badge>
+                            ) : (
+                              <Badge className={daysRemaining <= 7 ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
+                                {daysRemaining} dias
+                              </Badge>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </CardContent>
