@@ -3,8 +3,9 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { getDb, createAccessLink, checkAccessLink, decrementAccessLink } from "./db-client";
+import { createAccessLink, checkAccessLink, decrementAccessLink } from "./db-client";
 import { insertSoilAnalysisSchema, insertLoginSchema } from "@shared/schema";
+import { createClient } from "@supabase/supabase-js";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -180,6 +181,55 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to delete login" });
+    }
+  });
+
+  // Verify login credentials against logins table
+  app.post('/api/verify-login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
+
+      const supabaseUrl = process.env.SUPABASE_URL || '';
+      const supabaseKey = process.env.SUPABASE_KEY || '';
+      
+      if (!supabaseUrl || !supabaseKey) {
+        return res.status(500).json({ error: "Supabase not configured" });
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data: logins, error } = await supabase
+        .from('logins')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .eq('status', 'active');
+
+      if (error || !logins || logins.length === 0) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      const login = logins[0];
+
+      // Check if login has expired
+      if (login.expires_at && new Date(login.expires_at) < new Date()) {
+        return res.status(401).json({ error: "Login has expired" });
+      }
+
+      res.json({ 
+        success: true, 
+        user: {
+          id: login.id,
+          email: login.email,
+          username: login.username,
+          clientName: login.client_name,
+          plan: login.plan
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Verification failed" });
     }
   });
 
