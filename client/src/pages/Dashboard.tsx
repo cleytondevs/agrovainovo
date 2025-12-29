@@ -280,6 +280,32 @@ export default function Dashboard() {
     return days;
   };
   
+  const getLunarPhaseForDay = (day: number, monthIndex: number) => {
+    // Lógica simplificada para demonstração baseada em ciclos de ~29.5 dias
+    // No mundo real, usaríamos uma biblioteca como 'lunar-calendar' ou API
+    // Para 2026, Janeiro:
+    if (monthIndex === 0) { // Janeiro
+      if (day === 3) return "CHEIA";
+      if (day === 10) return "MINGUANTE";
+      if (day === 18) return "NOVA";
+      if (day === 26) return "CRESCENTE";
+    }
+    // Fevereiro:
+    if (monthIndex === 1) {
+      if (day === 1) return "CHEIA";
+      if (day === 9) return "MINGUANTE";
+      if (day === 17) return "NOVA";
+      if (day === 25) return "CRESCENTE";
+    }
+    // Para outros meses, simulamos um ciclo aproximado
+    const cycleDay = (day + (monthIndex * 30)) % 30;
+    if (cycleDay === 3) return "CHEIA";
+    if (cycleDay === 10) return "MINGUANTE";
+    if (cycleDay === 18) return "NOVA";
+    if (cycleDay === 26) return "CRESCENTE";
+    return null;
+  };
+
   const calendarDays = getCalendarDays(currentMonthIndex, CALENDAR_YEAR);
 
   const SidebarContent = () => (
@@ -466,9 +492,9 @@ export default function Dashboard() {
                       {calendarDays.map((day, i) => {
                         if (day === null) return <div key={i} className="bg-slate-50 min-h-[100px]"></div>;
                         
-                        // Lógica visual simulada baseada na imagem
+                        // Lógica visual baseada nas fases reais aproximadas
                         const isLunarMovement = (day >= 12 && day <= 25);
-                        const lunarPhase = day === 6 ? "MINGUANTE" : day === 13 ? "NOVA" : day === 20 ? "CRESCENTE" : day === 28 ? "CHEIA" : null;
+                        const lunarPhase = getLunarPhaseForDay(day, currentMonthIndex);
                         
                         return (
                           <div key={i} className={`bg-white min-h-[100px] p-2 flex flex-col justify-between relative group ${isLunarMovement ? 'bg-orange-50/50' : ''}`}>
@@ -476,11 +502,31 @@ export default function Dashboard() {
                             <div className="flex justify-between items-start">
                               <span className={`text-lg font-black ${day === 1 || day === 11 ? 'text-green-600' : 'text-slate-700'}`}>{day.toString().padStart(2, '0')}</span>
                               {lunarPhase && (
-                                <div className="flex flex-col items-center">
-                                  {lunarPhase === "MINGUANTE" && <Moon className="h-4 w-4 text-slate-400 rotate-180" />}
-                                  {lunarPhase === "NOVA" && <Circle className="h-4 w-4 text-green-500 fill-current" />}
-                                  {lunarPhase === "CRESCENTE" && <Moon className="h-4 w-4 text-slate-400" />}
-                                  {lunarPhase === "CHEIA" && <Circle className="h-4 w-4 text-slate-300" />}
+                                <div className="flex flex-col items-center group-hover:scale-110 transition-transform">
+                                  {lunarPhase === "MINGUANTE" && (
+                                    <>
+                                      <Moon className="h-5 w-5 text-slate-400 rotate-180" />
+                                      <span className="text-[8px] font-bold uppercase text-slate-500">Minguante</span>
+                                    </>
+                                  )}
+                                  {lunarPhase === "NOVA" && (
+                                    <>
+                                      <Circle className="h-5 w-5 text-slate-900 fill-current" />
+                                      <span className="text-[8px] font-bold uppercase text-slate-500">Nova</span>
+                                    </>
+                                  )}
+                                  {lunarPhase === "CRESCENTE" && (
+                                    <>
+                                      <Moon className="h-5 w-5 text-slate-400" />
+                                      <span className="text-[8px] font-bold uppercase text-slate-500">Crescente</span>
+                                    </>
+                                  )}
+                                  {lunarPhase === "CHEIA" && (
+                                    <>
+                                      <Circle className="h-5 w-5 text-yellow-200 fill-yellow-100 border border-yellow-300" />
+                                      <span className="text-[8px] font-bold uppercase text-slate-500">Cheia</span>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </div>
