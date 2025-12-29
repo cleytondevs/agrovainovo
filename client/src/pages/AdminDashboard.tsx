@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Check, X, Clock, Edit2, Copy, Trash2, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { LogOut, Check, X, Clock, Edit2, Copy, Trash2, Plus, RefreshCw } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { AdminAnalysisModal } from "./AdminAnalysisModal";
@@ -26,6 +27,7 @@ function generatePassword(): string {
 function calculateExpirationDate(planType: string): string {
   const now = new Date();
   const daysMap: { [key: string]: number } = {
+    "1_minute": 0.000694, // 1 minuto em dias (para teste)
     "1_month": 30,
     "3_months": 90,
     "6_months": 180
@@ -57,6 +59,9 @@ const AdminDashboard = () => {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [selectedAnalysis, setSelectedAnalysis] = useState<SoilAnalysis | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [renewalModalOpen, setRenewalModalOpen] = useState(false);
+  const [selectedLoginForRenewal, setSelectedLoginForRenewal] = useState<any>(null);
+  const [renewalPlan, setRenewalPlan] = useState("1_month");
   const [activeTab, setActiveTab] = useState("analyses");
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
@@ -215,6 +220,28 @@ const AdminDashboard = () => {
     },
   });
 
+  const renewalMutation = useMutation({
+    mutationFn: async (loginId: number) => {
+      if (!selectedLoginForRenewal) return;
+      const newExpiresAt = calculateExpirationDate(renewalPlan);
+      const { error } = await supabase
+        .from('logins')
+        .update({ expires_at: newExpiresAt })
+        .eq('id', loginId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
+      toast({ title: "Plano renovado com sucesso!" });
+      setRenewalModalOpen(false);
+      setSelectedLoginForRenewal(null);
+      setRenewalPlan("1_month");
+    },
+    onError: (error) => {
+      toast({ title: "Erro", description: String(error), variant: "destructive" });
+    },
+  });
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copiado!" });
@@ -352,7 +379,19 @@ const AdminDashboard = () => {
                           </td>
                           <td className="px-4 py-3">
                             {isExpired ? (
-                              <Badge className="bg-red-100 text-red-800">Expirado</Badge>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedLoginForRenewal(login);
+                                  setRenewalPlan("1_month");
+                                  setRenewalModalOpen(true);
+                                }}
+                                data-testid={`button-renew-${login.id}`}
+                              >
+                                <RefreshCw className="w-3 h-3 mr-1" />
+                                Renovar
+                              </Button>
                             ) : (
                               <Badge className={daysRemaining <= 7 ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
                                 {daysRemaining} dias
@@ -605,6 +644,42 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Renewal Dialog */}
+        <Dialog open={renewalModalOpen} onOpenChange={setRenewalModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Renovar Plano - {selectedLoginForRenewal?.clientName}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Escolha o novo plano:</label>
+                <Select value={renewalPlan} onValueChange={setRenewalPlan}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1_minute">Teste 1 minuto</SelectItem>
+                    <SelectItem value="1_month">1 Mês</SelectItem>
+                    <SelectItem value="3_months">3 Meses</SelectItem>
+                    <SelectItem value="6_months">6 Meses</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setRenewalModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => selectedLoginForRenewal && renewalMutation.mutate(selectedLoginForRenewal.id)}
+                disabled={renewalMutation.isPending}
+              >
+                {renewalMutation.isPending ? "Renovando..." : "Renovar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
