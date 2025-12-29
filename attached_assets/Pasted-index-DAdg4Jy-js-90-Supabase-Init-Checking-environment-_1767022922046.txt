@@ -1,0 +1,45 @@
+index-DAdg4Jy_.js:90 [Supabase Init] Checking environment variables: Object
+index-DAdg4Jy_.js:90 [Supabase Init] Successfully obtained credentials, creating client
+index-DAdg4Jy_.js:90 Supabase initialized successfully
+tab.js:1 Refused to execute inline script because it violates the following Content Security Policy directive: "script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' chrome-extension://9bfc421c-f0db-4b2e-bfbc-a3f2cdc6cc9b/". Either the 'unsafe-inline' keyword, a hash ('sha256-kPx0AsF0oz2kKiZ875xSvv693TBHkQ/0SkMJZnnNpnQ='), or a nonce ('nonce-...') is required to enable inline execution.
+
+(anonymous) @ tab.js:1
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/users?select=*:1  Failed to load resource: the server responded with a status of 404 ()
+index-DAdg4Jy_.js:94 [AdminDashboard] Creating login with auth: Object
+api/logins/create-with-auth:1  Failed to load resource: the server responded with a status of 404 ()
+index-DAdg4Jy_.js:94 [AdminDashboard] Creating login with auth: Object
+api/logins/create-with-auth:1  Failed to load resource: the server responded with a status of 404 ()
+index-DAdg4Jy_.js:94 [AdminDashboard] Creating login with auth: Object
+api/logins/create-with-auth:1  Failed to load resource: the server responded with a status of 404 ()
+index-DAdg4Jy_.js:94 [AdminDashboard] Creating login with auth: Object
+api/logins/create-with-auth:1  Failed to load resource: the server responded with a status of 404 ()
+index-DAdg4Jy_.js:94 [AdminDashboard] Creating login with auth: Object
+api/logins/create-with-auth:1  Failed to load resource: the server responded with a status of 404 ()
+admin:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+admin:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+admin:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+admin:1  Failed to load resource: the server responded with a status of 404 ()
+index-DAdg4Jy_.js:94 [AdminDashboard] Creating login with auth: {email: 'sdfsdfs@gmail.com', clientName: 'sdfdsfsd', plan: '6_months', expiresAt: '2026-06-27T15:41:51.964Z'}
+index-DAdg4Jy_.js:94  POST https://cosmic-pastelito-b206e2.netlify.app/api/logins/create-with-auth 404 (Not Found)
+mutationFn @ index-DAdg4Jy_.js:94
+fn @ index-DAdg4Jy_.js:8
+E @ index-DAdg4Jy_.js:8
+start @ index-DAdg4Jy_.js:8
+execute @ index-DAdg4Jy_.js:8
+await in execute
+mutate @ index-DAdg4Jy_.js:8
+(anonymous) @ index-DAdg4Jy_.js:8
+onClick @ index-DAdg4Jy_.js:94
+Bb @ index-DAdg4Jy_.js:5
+Hb @ index-DAdg4Jy_.js:5
+qb @ index-DAdg4Jy_.js:5
+Wp @ index-DAdg4Jy_.js:5
+Hp @ index-DAdg4Jy_.js:5
+(anonymous) @ index-DAdg4Jy_.js:5
+vd @ index-DAdg4Jy_.js:8
+Jf @ index-DAdg4Jy_.js:5
+vu @ index-DAdg4Jy_.js:5
+Xc @ index-DAdg4Jy_.js:5
+l_ @ index-DAdg4Jy_.js:5
