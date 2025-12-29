@@ -4,23 +4,27 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LogOut, FileText, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { LogOut, FileText, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabaseClient";
 import type { SoilAnalysis } from "@shared/schema";
 
 export default function MyAnalyses() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkUser = async () => {
-      const { getSupabaseClient } = await import("@/lib/supabaseClient");
-      const client = await getSupabaseClient();
-      const { data: { user } } = await client.auth.getUser();
-      if (!user) setLocation("/");
-      else setUser(user);
+      try {
+        const { getSupabaseClient } = await import("@/lib/supabaseClient");
+        const client = await getSupabaseClient();
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) setLocation("/");
+        else setUser(user);
+      } finally {
+        setLoading(false);
+      }
     };
     checkUser();
   }, [setLocation]);
@@ -55,6 +59,14 @@ export default function MyAnalyses() {
     approved: { label: "Aprovado", color: "bg-green-100 text-green-800", icon: CheckCircle2 },
     rejected: { label: "Rejeitado", color: "bg-red-100 text-red-800", icon: XCircle },
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f0f9f4]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!user) return null;
 
