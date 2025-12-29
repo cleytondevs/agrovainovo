@@ -89,9 +89,22 @@ export default function Dashboard() {
     try {
       const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`);
       const data = await response.json();
+      
+      // Determine city/state name for weather display
+      let displayName = city;
+      if (city === "Localização Atual" || city === "São Paulo") {
+        try {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+          const geoData = await geoRes.json();
+          displayName = geoData.address.city || geoData.address.town || geoData.address.state || city;
+        } catch (e) {
+          console.warn("Reverse geocoding failed, using original city name");
+        }
+      }
+
       setWeather({
         temp: data.current_weather.temperature,
-        city: city,
+        city: displayName,
         code: data.current_weather.weathercode
       });
     } catch (e) {
@@ -105,16 +118,20 @@ export default function Dashboard() {
     setLoadingNews(true);
     try {
       const reg = region?.toLowerCase() || "";
-      const isRegional = reg.includes("rondonia") || 
+      // Explicitly check for Northern region markers
+      const isNorthern = reg.includes("rondonia") || 
                          reg.includes("porto velho") || 
                          reg.includes("acre") || 
                          reg.includes("mato grosso") || 
                          reg.includes("amazonas") ||
-                         reg.includes("ro");
+                         reg.includes("ro") ||
+                         reg.includes("am") ||
+                         reg.includes("ac") ||
+                         reg.includes("mt");
       
-      setDetectedRegion(isRegional ? "Rondônia e Região Norte" : "Brasil");
+      setDetectedRegion(isNorthern ? "Rondônia e Região Norte" : (region || "Brasil"));
 
-      const regionalNews = isRegional ? [
+      const regionalNews = isNorthern ? [
         { title: "Rondônia amplia exportação de carne bovina para o mercado asiático", source: "Diário da Amazônia", link: "https://www.google.com/search?q=noticias+agro+rondonia" },
         { title: "Produtores de soja em Vilhena iniciam colheita com boas expectativas", source: "Rondônia Agora", link: "https://www.google.com/search?q=safra+soja+rondonia" },
         { title: "Governo de RO lança programa de incentivo à cafeicultura sustentável", source: "Seagri RO", link: "https://www.google.com/search?q=cafeicultura+rondonia" },
@@ -137,15 +154,53 @@ export default function Dashboard() {
     const initData = async () => {
       if (user && activeTab === "overview") {
         try {
-          const locRes = await fetch('https://freeipapi.com/api/json');
-          const locData = await locRes.json();
-          
-          if (locData.latitude && locData.longitude) {
-            fetchWeather(locData.latitude, locData.longitude, locData.cityName);
-            fetchNews(locData.regionName || locData.regionCode || locData.cityName);
+          // Priority 1: Browser Geolocation (Most precise)
+          if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                const { latitude, longitude } = position.coords;
+                fetchWeather(latitude, longitude, "Localização Atual");
+                
+                // Fetch region info for news
+                try {
+                  const locRes = await fetch('https://freeipapi.com/api/json');
+                  const locData = await locRes.json();
+                  fetchNews(locData.regionName || locData.regionCode || locData.cityName);
+                } catch (e) {
+                  fetchNews();
+                }
+              },
+              async (error) => {
+                // Priority 2: IP-based Geolocation (Fallback if denied)
+                console.warn("Geolocation denied, using IP", error);
+                try {
+                  const locRes = await fetch('https://freeipapi.com/api/json');
+                  const locData = await locRes.json();
+                  if (locData.latitude && locData.longitude) {
+                    fetchWeather(locData.latitude, locData.longitude, locData.cityName || locData.regionName);
+                    fetchNews(locData.regionName || locData.regionCode || locData.cityName);
+                  } else {
+                    fetchWeather(-23.5505, -46.6333, "São Paulo");
+                    fetchNews();
+                  }
+                } catch (e) {
+                  fetchWeather(-23.5505, -46.6333, "São Paulo");
+                  fetchNews();
+                }
+              },
+              { timeout: 10000, enableHighAccuracy: true }
+            );
           } else {
-            fetchWeather(-23.5505, -46.6333, "São Paulo");
-            fetchNews();
+            // Priority 2: IP-based Geolocation (Directly if no browser support)
+            const locRes = await fetch('https://freeipapi.com/api/json');
+            const locData = await locRes.json();
+            if (locData.latitude && locData.longitude) {
+              fetchWeather(locData.latitude, locData.longitude, locData.cityName || locData.regionName);
+              fetchNews(locData.regionName || locData.regionCode || locData.cityName);
+            } else {
+              fetchWeather(-23.5505, -46.6333, "São Paulo");
+              fetchNews();
+            }
           }
         } catch (e) {
           console.error("Location detection failed", e);
