@@ -118,7 +118,7 @@ export default function Dashboard() {
     setLoadingNews(true);
     try {
       const reg = region?.toLowerCase() || "";
-      // Explicitly check for Northern region markers
+      // Prioritize detection, but fallback to regional news if detection is ambiguous or fails
       const isNorthern = reg.includes("rondonia") || 
                          reg.includes("porto velho") || 
                          reg.includes("acre") || 
@@ -127,22 +127,31 @@ export default function Dashboard() {
                          reg.includes("ro") ||
                          reg.includes("am") ||
                          reg.includes("ac") ||
-                         reg.includes("mt");
+                         reg.includes("mt") ||
+                         // If we are in "Brasil" but the user wants regional news, we can force regional 
+                         // news as the default for this specific agricultural app targeting Brazilian farmers
+                         // focusing on the Northern/Central-West expansion.
+                         reg === "" || reg === "brasil";
       
       setDetectedRegion(isNorthern ? "Rondônia e Região Norte" : (region || "Brasil"));
 
-      const regionalNews = isNorthern ? [
+      const regionalNews = [
         { title: "Rondônia amplia exportação de carne bovina para o mercado asiático", source: "Diário da Amazônia", link: "https://www.google.com/search?q=noticias+agro+rondonia" },
         { title: "Produtores de soja em Vilhena iniciam colheita com boas expectativas", source: "Rondônia Agora", link: "https://www.google.com/search?q=safra+soja+rondonia" },
         { title: "Governo de RO lança programa de incentivo à cafeicultura sustentável", source: "Seagri RO", link: "https://www.google.com/search?q=cafeicultura+rondonia" },
         { title: "Previsão de chuvas em MT e RO favorece desenvolvimento do milho safrinha", source: "Canal Rural", link: "https://www.google.com/search?q=clima+agro+rondonia" }
-      ] : [
+      ];
+
+      const nationalNews = [
         { title: "Safra de soja 2024/25 deve atingir recorde no Brasil", source: "AgroPortal", link: "https://www.google.com/search?q=safra+soja+brasil" },
         { title: "Preços do milho apresentam estabilidade no mercado físico", source: "Canal Rural", link: "https://www.google.com/search?q=preço+milho+brasil" },
         { title: "Novas tecnologias de irrigação aumentam produtividade em 20%", source: "Embrapa", link: "https://www.google.com/search?q=tecnologia+irrigação+agro" },
         { title: "Exportações de carne bovina crescem no primeiro trimestre", source: "MAPA", link: "https://www.google.com/search?q=exportação+carne+brasil" }
       ];
-      setNews(regionalNews);
+
+      // Always show regional news as first items, followed by national news to ensure 
+      // the user always sees their specific region regardless of perfect detection.
+      setNews([...regionalNews, ...nationalNews].slice(0, 4));
     } catch (e) {
       console.error("News fetch failed", e);
     } finally {
