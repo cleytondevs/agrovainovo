@@ -8,6 +8,7 @@ import SignUp from "@/pages/SignUp";
 import SetupAccess from "@/pages/SetupAccess";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import MyAnalyses from "@/pages/MyAnalyses";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       </Route>
       <Route path="/setup" component={SetupAccess} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/my-analyses" component={MyAnalyses} />
       <Route path="/admin" component={AdminDashboard} />
       
       {/* Fallback to 404 */}

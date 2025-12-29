@@ -128,6 +128,10 @@ export default function Dashboard() {
     toast({ title: "Até logo!", description: "Log off realizado." });
   };
 
+  const goToMyAnalyses = () => {
+    setLocation("/my-analyses");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f0f9f4]">
@@ -277,6 +281,10 @@ export default function Dashboard() {
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
               {user.email?.[0].toUpperCase()}
             </div>
+            <Button variant="ghost" size="sm" onClick={goToMyAnalyses} className="text-muted-foreground hover:text-blue-600" data-testid="button-my-analyses">
+              <Beaker className="h-4 w-4 mr-1" />
+              Minhas Análises
+            </Button>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-red-600">
               <LogOut className="h-4 w-4 mr-1" />
               Sair

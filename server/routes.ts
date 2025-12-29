@@ -88,6 +88,17 @@ export async function registerRoutes(
     }
   });
 
+  // Get user soil analyses
+  app.get('/api/soil-analysis/user/:email', async (req, res) => {
+    try {
+      const email = req.params.email;
+      const analyses = await storage.getUserSoilAnalysis(email);
+      res.json(analyses);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to fetch user analyses" });
+    }
+  });
+
   // Update soil analysis status
   app.patch('/api/soil-analysis/:id/status', async (req, res) => {
     try {

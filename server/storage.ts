@@ -7,6 +7,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   createSoilAnalysis(analysis: InsertSoilAnalysis): Promise<SoilAnalysis>;
   getAllSoilAnalysis(): Promise<SoilAnalysis[]>;
+  getUserSoilAnalysis(userEmail: string): Promise<SoilAnalysis[]>;
   updateSoilAnalysisStatus(id: number, status: string): Promise<SoilAnalysis>;
   updateSoilAnalysisWithComments(id: number, status: string, adminComments: string, adminFileUrls: string): Promise<SoilAnalysis>;
 }
@@ -63,6 +64,16 @@ export class MemStorage implements IStorage {
     } catch (error) {
       console.warn("Failed to fetch all analyses from database, returning memory storage", error);
       return Array.from(this.soilAnalyses.values());
+    }
+  }
+
+  async getUserSoilAnalysis(userEmail: string): Promise<SoilAnalysis[]> {
+    try {
+      const analyses = await dbClient.getAllSoilAnalysis();
+      return analyses.filter(a => a.userEmail === userEmail);
+    } catch (error) {
+      console.warn("Failed to fetch user analyses from database", error);
+      return Array.from(this.soilAnalyses.values()).filter(a => a.userEmail === userEmail);
     }
   }
 
