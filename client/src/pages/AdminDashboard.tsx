@@ -10,6 +10,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { AdminAnalysisModal } from "./AdminAnalysisModal";
 import type { SoilAnalysis } from "@shared/schema";
+import { supabase } from "@/lib/supabaseClient";
 
 const AdminDashboard = () => {
   const [, setLocation] = useLocation();
@@ -47,17 +48,29 @@ const AdminDashboard = () => {
 
   const { data: analyses = [], isLoading } = useQuery<SoilAnalysis[]>({
     queryKey: ["/api/soil-analysis/all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('soil_analysis').select('*').order('createdAt', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
     enabled: isAuthenticated,
   });
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery<any[]>({
     queryKey: ["/api/users/all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('users').select('*');
+      if (error) throw error;
+      return data || [];
+    },
     enabled: isAuthenticated,
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: string }) =>
-      apiRequest("PATCH", `/api/soil-analysis/${id}/status`, { status }),
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const { error } = await supabase.from('soil_analysis').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
       toast({ title: "Status atualizado com sucesso" });
@@ -68,12 +81,15 @@ const AdminDashboard = () => {
   });
 
   const submitAnalysisMutation = useMutation({
-    mutationFn: (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) =>
-      apiRequest("PATCH", `/api/soil-analysis/${data.id}/review`, {
+    mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
+      const { error } = await supabase.from('soil_analysis').update({
         status: data.status,
         adminComments: data.adminComments,
         adminFileUrls: data.adminFileUrls,
-      }),
+        updatedAt: new Date().toISOString()
+      }).eq('id', data.id);
+      if (error) throw error;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
       toast({ title: "Análise salva com sucesso" });

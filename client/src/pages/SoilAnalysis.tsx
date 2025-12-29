@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Beaker, Send } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 const CROP_TYPES = [
   "Milho",
@@ -82,14 +83,13 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
         status: "pending",
       };
 
-      // Send to backend
-      const response = await fetch("/api/soil-analysis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(analysisData),
-      });
+      // No Netlify, o backend Express não está disponível.
+      // Salvamos diretamente no Supabase para garantir persistência.
+      const { data: insertedData, error: sbError } = await supabase
+        .from('soil_analysis')
+        .insert([analysisData]);
 
-      if (!response.ok) throw new Error("Falha ao enviar análise");
+      if (sbError) throw sbError;
 
       toast({
         title: "Análise enviada!",

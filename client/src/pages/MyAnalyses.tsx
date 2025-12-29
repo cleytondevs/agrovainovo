@@ -32,9 +32,14 @@ export default function MyAnalyses() {
   const { data: analyses = [], isLoading } = useQuery<SoilAnalysis[]>({
     queryKey: ["/api/soil-analysis/user", user?.email],
     queryFn: async () => {
-      const response = await fetch(`/api/soil-analysis/user/${encodeURIComponent(user?.email)}`);
-      if (!response.ok) throw new Error("Failed to fetch analyses");
-      return response.json();
+      const { data, error } = await supabase
+        .from('soil_analysis')
+        .select('*')
+        .eq('userEmail', user?.email)
+        .order('createdAt', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user?.email,
     staleTime: 1000 * 60 * 5,

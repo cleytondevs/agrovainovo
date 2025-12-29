@@ -142,16 +142,7 @@ export default function Dashboard() {
         { title: "Previsão de chuvas em MT e RO favorece desenvolvimento do milho safrinha", source: "Canal Rural", link: "https://www.google.com/search?q=clima+agro+rondonia" }
       ];
 
-      const nationalNews = [
-        { title: "Safra de soja 2024/25 deve atingir recorde no Brasil", source: "AgroPortal", link: "https://www.google.com/search?q=safra+soja+brasil" },
-        { title: "Preços do milho apresentam estabilidade no mercado físico", source: "Canal Rural", link: "https://www.google.com/search?q=preço+milho+brasil" },
-        { title: "Novas tecnologias de irrigação aumentam produtividade em 20%", source: "Embrapa", link: "https://www.google.com/search?q=tecnologia+irrigação+agro" },
-        { title: "Exportações de carne bovina crescem no primeiro trimestre", source: "MAPA", link: "https://www.google.com/search?q=exportação+carne+brasil" }
-      ];
-
-      // Always show regional news as first items, followed by national news to ensure 
-      // the user always sees their specific region regardless of perfect detection.
-      setNews([...regionalNews, ...nationalNews].slice(0, 4));
+      setNews(regionalNews);
     } catch (e) {
       console.error("News fetch failed", e);
     } finally {
@@ -162,60 +153,8 @@ export default function Dashboard() {
   useEffect(() => {
     const initData = async () => {
       if (user && activeTab === "overview") {
-        try {
-          // Priority 1: Browser Geolocation (Most precise)
-          if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-              async (position) => {
-                const { latitude, longitude } = position.coords;
-                fetchWeather(latitude, longitude, "Localização Atual");
-                
-                // Fetch region info for news
-                try {
-                  const locRes = await fetch('https://freeipapi.com/api/json');
-                  const locData = await locRes.json();
-                  fetchNews(locData.regionName || locData.regionCode || locData.cityName);
-                } catch (e) {
-                  fetchNews();
-                }
-              },
-              async (error) => {
-                // Priority 2: IP-based Geolocation (Fallback if denied)
-                console.warn("Geolocation denied, using IP", error);
-                try {
-                  const locRes = await fetch('https://freeipapi.com/api/json');
-                  const locData = await locRes.json();
-                  if (locData.latitude && locData.longitude) {
-                    fetchWeather(locData.latitude, locData.longitude, locData.cityName || locData.regionName);
-                    fetchNews(locData.regionName || locData.regionCode || locData.cityName);
-                  } else {
-                    fetchWeather(-23.5505, -46.6333, "São Paulo");
-                    fetchNews();
-                  }
-                } catch (e) {
-                  fetchWeather(-23.5505, -46.6333, "São Paulo");
-                  fetchNews();
-                }
-              },
-              { timeout: 10000, enableHighAccuracy: true }
-            );
-          } else {
-            // Priority 2: IP-based Geolocation (Directly if no browser support)
-            const locRes = await fetch('https://freeipapi.com/api/json');
-            const locData = await locRes.json();
-            if (locData.latitude && locData.longitude) {
-              fetchWeather(locData.latitude, locData.longitude, locData.cityName || locData.regionName);
-              fetchNews(locData.regionName || locData.regionCode || locData.cityName);
-            } else {
-              fetchWeather(-23.5505, -46.6333, "São Paulo");
-              fetchNews();
-            }
-          }
-        } catch (e) {
-          console.error("Location detection failed", e);
-          fetchWeather(-23.5505, -46.6333, "São Paulo");
-          fetchNews();
-        }
+        fetchWeather(-8.7612, -63.9039, "Porto Velho");
+        fetchNews("Rondônia");
       }
     };
     initData();
