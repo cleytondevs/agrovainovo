@@ -412,6 +412,15 @@ export default function Dashboard() {
           <Leaf className="h-5 w-5" />
           Matéria
         </Button>
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start gap-3 text-base h-12 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+          onClick={() => setLocation("/admin")}
+          data-testid="button-tab-admin"
+        >
+          <LayoutDashboard className="h-5 w-5" />
+          Painel Admin
+        </Button>
       </nav>
 
       <div className="p-4 border-t border-border/50">
