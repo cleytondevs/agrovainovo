@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LogOut, Check, X, Clock, Edit2, Copy, Trash2, Plus } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +23,18 @@ function generatePassword(): string {
   return password;
 }
 
+function calculateExpirationDate(planType: string): Date {
+  const now = new Date();
+  const daysMap: { [key: string]: number } = {
+    "1_month": 30,
+    "3_months": 90,
+    "6_months": 180
+  };
+  const days = daysMap[planType] || 30;
+  const expireDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  return expireDate;
+}
+
 const AdminDashboard = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -33,6 +46,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("analyses");
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
+  const [plan, setPlan] = useState("1_month");
 
   // Check admin password on mount
   useEffect(() => {
@@ -152,11 +166,14 @@ const AdminDashboard = () => {
         throw new Error("Email é obrigatório");
       }
       const password = generatePassword();
+      const expiresAt = calculateExpirationDate(plan);
       const { error } = await supabase.from('logins').insert({
         username: email,
         password,
         client_name: clientName,
         email: email,
+        plan: plan,
+        expires_at: expiresAt.toISOString(),
         status: "active"
       });
       if (error) throw error;
@@ -165,6 +182,7 @@ const AdminDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
       setClientName("");
       setEmail("");
+      setPlan("1_month");
       toast({ title: "Login gerado com sucesso!" });
     },
     onError: (error) => {
@@ -447,6 +465,19 @@ const AdminDashboard = () => {
                     data-testid="input-email"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Plano</label>
+                  <Select value={plan} onValueChange={setPlan}>
+                    <SelectTrigger data-testid="select-plan">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1_month">1 Mês</SelectItem>
+                      <SelectItem value="3_months">3 Meses</SelectItem>
+                      <SelectItem value="6_months">6 Meses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button
                   onClick={() => createLoginMutation.mutate()}
                   disabled={createLoginMutation.isPending}
@@ -478,7 +509,11 @@ const AdminDashboard = () => {
                                 {login.status}
                               </span>
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{login.email}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{login.email}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                              Plano: {login.plan === "1_month" ? "1 Mês" : login.plan === "3_months" ? "3 Meses" : "6 Meses"} | 
+                              Expira em: {new Date(login.expires_at).toLocaleDateString("pt-BR")}
+                            </p>
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm">Usuário:</span>
