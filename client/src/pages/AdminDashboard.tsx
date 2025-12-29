@@ -189,33 +189,41 @@ const AdminDashboard = () => {
       const password = generatePassword();
       const expiresAt = calculateExpirationDate(plan);
       
-      console.log('[AdminDashboard] Creating login:', {
+      console.log('[AdminDashboard] Creating login with auth:', {
         email: normalizedEmail,
         clientName,
         plan,
         expiresAt
       });
       
-      const { error } = await supabase.from('logins').insert({
-        username: normalizedEmail,
-        password,
-        client_name: clientName,
-        email: normalizedEmail,
-        plan: plan,
-        expires_at: expiresAt,
-        status: "active"
+      const response = await fetch('/api/logins/create-with-auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          password,
+          clientName,
+          plan,
+          expiresAt
+        })
       });
-      if (error) {
-        console.error('[AdminDashboard] Failed to create login:', error);
-        throw error;
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Falha ao criar login');
       }
+
+      const result = await response.json();
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
       setClientName("");
       setEmail("");
       setPlan("1_month");
-      toast({ title: "Login gerado com sucesso!" });
+      toast({ title: "Login gerado com sucesso!", description: "Usuário criado no Supabase Authentication" });
     },
     onError: (error) => {
       toast({ title: "Erro", description: String(error), variant: "destructive" });

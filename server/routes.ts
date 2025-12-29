@@ -191,6 +191,72 @@ export async function registerRoutes(
     }
   });
 
+  // Create new login with Supabase Auth user
+  app.post('/api/logins/create-with-auth', async (req, res) => {
+    try {
+      const { email, password, clientName, plan, expiresAt } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+      if (!supabaseUrl || !serviceRoleKey) {
+        console.error('[CREATE-LOGIN-WITH-AUTH] Missing Supabase configuration');
+        return res.status(500).json({ error: "Supabase not configured" });
+      }
+
+      console.log('[CREATE-LOGIN-WITH-AUTH] Creating user for email:', normalizedEmail);
+
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+
+      // Create user in Supabase Auth
+      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: normalizedEmail,
+        password: password,
+        email_confirm: true,
+      });
+
+      if (authError) {
+        console.error('[CREATE-LOGIN-WITH-AUTH] Failed to create auth user:', authError);
+        throw new Error(`Failed to create Supabase user: ${authError.message}`);
+      }
+
+      console.log('[CREATE-LOGIN-WITH-AUTH] Auth user created:', authUser?.id);
+
+      // Now insert into logins table
+      const { error: insertError } = await supabaseAdmin.from('logins').insert({
+        username: normalizedEmail,
+        password,
+        client_name: clientName || null,
+        email: normalizedEmail,
+        plan: plan || '1_month',
+        expires_at: expiresAt,
+        status: "active"
+      });
+
+      if (insertError) {
+        console.error('[CREATE-LOGIN-WITH-AUTH] Failed to insert login record:', insertError);
+        // Try to delete the auth user if we can't insert the login
+        await supabaseAdmin.auth.admin.deleteUser(authUser!.id);
+        throw new Error(`Failed to create login record: ${insertError.message}`);
+      }
+
+      console.log('[CREATE-LOGIN-WITH-AUTH] Login record created successfully');
+
+      res.json({ 
+        success: true,
+        message: "Login criado com sucesso e usuário adicionado ao Supabase Authentication"
+      });
+    } catch (error: any) {
+      console.error('[CREATE-LOGIN-WITH-AUTH] Exception:', error);
+      res.status(500).json({ error: error.message || "Failed to create login with auth" });
+    }
+  });
+
   // Get all logins
   app.get('/api/logins', async (req, res) => {
     try {
