@@ -74,6 +74,7 @@ export default function Dashboard() {
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0); // Start from January 2026
   const [weather, setWeather] = useState<any>(null);
   const [news, setNews] = useState<any[]>([]);
+  const [detectedRegion, setDetectedRegion] = useState<string>("Brasil");
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [loadingNews, setLoadingNews] = useState(false);
   const CALENDAR_YEAR = 2026;
@@ -103,14 +104,21 @@ export default function Dashboard() {
   const fetchNews = async (region?: string) => {
     setLoadingNews(true);
     try {
-      // Notícias regionais simuladas baseadas na localização (Rondônia e vizinhos)
-      const isRondonia = region?.toLowerCase().includes("rondonia") || region?.toLowerCase().includes("porto velho");
+      const reg = region?.toLowerCase() || "";
+      const isRegional = reg.includes("rondonia") || 
+                         reg.includes("porto velho") || 
+                         reg.includes("acre") || 
+                         reg.includes("mato grosso") || 
+                         reg.includes("amazonas") ||
+                         reg.includes("ro");
       
-      const regionalNews = isRondonia ? [
+      setDetectedRegion(isRegional ? "Rondônia e Região Norte" : "Brasil");
+
+      const regionalNews = isRegional ? [
         { title: "Rondônia amplia exportação de carne bovina para o mercado asiático", source: "Diário da Amazônia", link: "https://www.google.com/search?q=noticias+agro+rondonia" },
         { title: "Produtores de soja em Vilhena iniciam colheita com boas expectativas", source: "Rondônia Agora", link: "https://www.google.com/search?q=safra+soja+rondonia" },
         { title: "Governo de RO lança programa de incentivo à cafeicultura sustentável", source: "Seagri RO", link: "https://www.google.com/search?q=cafeicultura+rondonia" },
-        { title: "Feira agropecuária em Ji-Paraná deve movimentar milhões em negócios", source: "G1 RO", link: "https://www.google.com/search?q=expojipa+noticias" }
+        { title: "Previsão de chuvas em MT e RO favorece desenvolvimento do milho safrinha", source: "Canal Rural", link: "https://www.google.com/search?q=clima+agro+rondonia" }
       ] : [
         { title: "Safra de soja 2024/25 deve atingir recorde no Brasil", source: "AgroPortal", link: "https://www.google.com/search?q=safra+soja+brasil" },
         { title: "Preços do milho apresentam estabilidade no mercado físico", source: "Canal Rural", link: "https://www.google.com/search?q=preço+milho+brasil" },
@@ -129,47 +137,15 @@ export default function Dashboard() {
     const initData = async () => {
       if (user && activeTab === "overview") {
         try {
-          // Tentar primeiro geolocalização do navegador (mais precisa)
-          if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-              async (position) => {
-                const { latitude, longitude } = position.coords;
-                // Usar as coordenadas reais para buscar o clima e cidade
-                fetchWeather(latitude, longitude, "Localização Atual");
-                // Tentar obter o nome da cidade/estado para as notícias
-                try {
-                  const reverseGeo = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-                  // Para fins de notícias regionais, usaremos a detecção de IP como fallback de texto
-                  const locRes = await fetch('https://freeipapi.com/api/json');
-                  const locData = await locRes.json();
-                  fetchNews(locData.regionName || locData.cityName);
-                } catch (e) {
-                  fetchNews();
-                }
-              },
-              async (error) => {
-                console.warn("Navegador negou geolocalização, tentando IP", error);
-                const locRes = await fetch('https://freeipapi.com/api/json');
-                const locData = await locRes.json();
-                if (locData.latitude && locData.longitude) {
-                  fetchWeather(locData.latitude, locData.longitude, locData.cityName);
-                  fetchNews(locData.regionName || locData.cityName);
-                } else {
-                  fetchWeather(-23.5505, -46.6333, "São Paulo");
-                  fetchNews();
-                }
-              }
-            );
+          const locRes = await fetch('https://freeipapi.com/api/json');
+          const locData = await locRes.json();
+          
+          if (locData.latitude && locData.longitude) {
+            fetchWeather(locData.latitude, locData.longitude, locData.cityName);
+            fetchNews(locData.regionName || locData.regionCode || locData.cityName);
           } else {
-            const locRes = await fetch('https://freeipapi.com/api/json');
-            const locData = await locRes.json();
-            if (locData.latitude && locData.longitude) {
-              fetchWeather(locData.latitude, locData.longitude, locData.cityName);
-              fetchNews(locData.regionName || locData.cityName);
-            } else {
-              fetchWeather(-23.5505, -46.6333, "São Paulo");
-              fetchNews();
-            }
+            fetchWeather(-23.5505, -46.6333, "São Paulo");
+            fetchNews();
           }
         } catch (e) {
           console.error("Location detection failed", e);
@@ -447,9 +423,14 @@ export default function Dashboard() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Newspaper className="h-6 w-6 text-primary" />
-                    <h2 className="text-xl font-bold text-secondary">Notícias do Agronegócio</h2>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Newspaper className="h-6 w-6 text-primary" />
+                      <h2 className="text-xl font-bold text-secondary">Notícias do Agronegócio</h2>
+                    </div>
+                    <Badge variant="outline" className="text-xs font-medium border-primary/20 text-primary">
+                      Região: {detectedRegion}
+                    </Badge>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {loadingNews ? (
