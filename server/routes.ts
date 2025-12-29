@@ -220,43 +220,83 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Email and password required" });
       }
 
-      const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-      const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+      // Use environment variables available at runtime
+      // VITE_* variables are only available during build, not at runtime
+      // So we need to use the non-VITE versions that are set in Netlify environment
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
       
+      console.log('[VERIFY-LOGIN] Attempting login:', {
+        email,
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey,
+        urlPreview: supabaseUrl?.substring(0, 35)
+      });
+
       if (!supabaseUrl || !supabaseKey) {
+        console.error('[VERIFY-LOGIN] Missing Supabase configuration:', {
+          VITE_SUPABASE_URL: !!process.env.VITE_SUPABASE_URL,
+          SUPABASE_URL: !!process.env.SUPABASE_URL,
+          SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+          VITE_SUPABASE_ANON_KEY: !!process.env.VITE_SUPABASE_ANON_KEY
+        });
         return res.status(500).json({ error: "Supabase not configured" });
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      // Trim email and normalize it for comparison
+      const normalizedEmail = email.trim().toLowerCase();
+      
       const { data: logins, error } = await supabase
         .from('logins')
         .select('*')
-        .eq('email', email)
-        .eq('password', password)
+        .ilike('email', normalizedEmail)
         .eq('status', 'active');
 
-      if (error || !logins || logins.length === 0) {
+      console.log('[VERIFY-LOGIN] Query result:', {
+        email: normalizedEmail,
+        found: logins?.length || 0,
+        error: error?.message
+      });
+
+      if (error) {
+        console.error('[VERIFY-LOGIN] Supabase query error:', error);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      const login = logins[0];
+      if (!logins || logins.length === 0) {
+        console.log('[VERIFY-LOGIN] No logins found for email:', normalizedEmail);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Check password against all matching emails
+      const matchingLogin = logins.find(l => l.password === password);
+      
+      if (!matchingLogin) {
+        console.log('[VERIFY-LOGIN] Password mismatch for email:', normalizedEmail);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
 
       // Check if login has expired
-      if (login.expires_at && new Date(login.expires_at) < new Date()) {
+      if (matchingLogin.expires_at && new Date(matchingLogin.expires_at) < new Date()) {
+        console.log('[VERIFY-LOGIN] Login expired for:', normalizedEmail);
         return res.status(401).json({ error: "Login has expired" });
       }
 
+      console.log('[VERIFY-LOGIN] Successful login for:', normalizedEmail);
       res.json({ 
         success: true, 
         user: {
-          id: login.id,
-          email: login.email,
-          username: login.username,
-          clientName: login.client_name,
-          plan: login.plan
+          id: matchingLogin.id,
+          email: matchingLogin.email,
+          username: matchingLogin.username,
+          clientName: matchingLogin.client_name,
+          plan: matchingLogin.plan
         }
       });
     } catch (error: any) {
+      console.error('[VERIFY-LOGIN] Exception:', error);
       res.status(500).json({ error: error.message || "Verification failed" });
     }
   });
