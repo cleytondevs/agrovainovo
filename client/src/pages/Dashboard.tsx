@@ -100,18 +100,24 @@ export default function Dashboard() {
     }
   };
 
-  const fetchNews = async () => {
+  const fetchNews = async (region?: string) => {
     setLoadingNews(true);
     try {
-      // For practical use in a client-side only news fetch without CORS issues, 
-      // we'll use a set of relevant agro news
-      const mockNews = [
+      // Notícias regionais simuladas baseadas na localização (Rondônia e vizinhos)
+      const isRondonia = region?.toLowerCase().includes("rondonia") || region?.toLowerCase().includes("porto velho");
+      
+      const regionalNews = isRondonia ? [
+        { title: "Rondônia amplia exportação de carne bovina para o mercado asiático", source: "Diário da Amazônia", link: "https://www.google.com/search?q=noticias+agro+rondonia" },
+        { title: "Produtores de soja em Vilhena iniciam colheita com boas expectativas", source: "Rondônia Agora", link: "https://www.google.com/search?q=safra+soja+rondonia" },
+        { title: "Governo de RO lança programa de incentivo à cafeicultura sustentável", source: "Seagri RO", link: "https://www.google.com/search?q=cafeicultura+rondonia" },
+        { title: "Feira agropecuária em Ji-Paraná deve movimentar milhões em negócios", source: "G1 RO", link: "https://www.google.com/search?q=expojipa+noticias" }
+      ] : [
         { title: "Safra de soja 2024/25 deve atingir recorde no Brasil", source: "AgroPortal", link: "https://www.google.com/search?q=safra+soja+brasil" },
         { title: "Preços do milho apresentam estabilidade no mercado físico", source: "Canal Rural", link: "https://www.google.com/search?q=preço+milho+brasil" },
         { title: "Novas tecnologias de irrigação aumentam produtividade em 20%", source: "Embrapa", link: "https://www.google.com/search?q=tecnologia+irrigação+agro" },
         { title: "Exportações de carne bovina crescem no primeiro trimestre", source: "MAPA", link: "https://www.google.com/search?q=exportação+carne+brasil" }
       ];
-      setNews(mockNews);
+      setNews(regionalNews);
     } catch (e) {
       console.error("News fetch failed", e);
     } finally {
@@ -122,7 +128,6 @@ export default function Dashboard() {
   useEffect(() => {
     const initData = async () => {
       if (user && activeTab === "overview") {
-        fetchNews();
         try {
           // Tentar primeiro geolocalização do navegador (mais precisa)
           if ("geolocation" in navigator) {
@@ -131,32 +136,45 @@ export default function Dashboard() {
                 const { latitude, longitude } = position.coords;
                 // Usar as coordenadas reais para buscar o clima e cidade
                 fetchWeather(latitude, longitude, "Localização Atual");
+                // Tentar obter o nome da cidade/estado para as notícias
+                try {
+                  const reverseGeo = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                  // Para fins de notícias regionais, usaremos a detecção de IP como fallback de texto
+                  const locRes = await fetch('https://freeipapi.com/api/json');
+                  const locData = await locRes.json();
+                  fetchNews(locData.regionName || locData.cityName);
+                } catch (e) {
+                  fetchNews();
+                }
               },
               async (error) => {
                 console.warn("Navegador negou geolocalização, tentando IP", error);
-                // Fallback para IP se o navegador negar
                 const locRes = await fetch('https://freeipapi.com/api/json');
                 const locData = await locRes.json();
                 if (locData.latitude && locData.longitude) {
                   fetchWeather(locData.latitude, locData.longitude, locData.cityName);
+                  fetchNews(locData.regionName || locData.cityName);
                 } else {
                   fetchWeather(-23.5505, -46.6333, "São Paulo");
+                  fetchNews();
                 }
               }
             );
           } else {
-            // Fallback direto para IP se não houver suporte a geolocalização
             const locRes = await fetch('https://freeipapi.com/api/json');
             const locData = await locRes.json();
             if (locData.latitude && locData.longitude) {
               fetchWeather(locData.latitude, locData.longitude, locData.cityName);
+              fetchNews(locData.regionName || locData.cityName);
             } else {
               fetchWeather(-23.5505, -46.6333, "São Paulo");
+              fetchNews();
             }
           }
         } catch (e) {
           console.error("Location detection failed", e);
           fetchWeather(-23.5505, -46.6333, "São Paulo");
+          fetchNews();
         }
       }
     };
