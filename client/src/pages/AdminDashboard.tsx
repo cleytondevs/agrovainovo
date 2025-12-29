@@ -23,7 +23,7 @@ function generatePassword(): string {
   return password;
 }
 
-function calculateExpirationDate(planType: string): Date {
+function calculateExpirationDate(planType: string): string {
   const now = new Date();
   const daysMap: { [key: string]: number } = {
     "1_month": 30,
@@ -32,7 +32,21 @@ function calculateExpirationDate(planType: string): Date {
   };
   const days = daysMap[planType] || 30;
   const expireDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-  return expireDate;
+  return expireDate.toISOString();
+}
+
+function formatExpirationDate(expiresAt: string | null): string {
+  if (!expiresAt) return "Data inválida";
+  try {
+    const date = new Date(expiresAt);
+    // Verificar se a data é válida
+    if (isNaN(date.getTime())) {
+      return "Data inválida";
+    }
+    return date.toLocaleDateString("pt-BR");
+  } catch (e) {
+    return "Data inválida";
+  }
 }
 
 const AdminDashboard = () => {
@@ -173,7 +187,7 @@ const AdminDashboard = () => {
         client_name: clientName,
         email: email,
         plan: plan,
-        expires_at: expiresAt.toISOString(),
+        expires_at: expiresAt,
         status: "active"
       });
       if (error) throw error;
@@ -512,7 +526,7 @@ const AdminDashboard = () => {
                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{login.email}</p>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
                               Plano: {login.plan === "1_month" ? "1 Mês" : login.plan === "3_months" ? "3 Meses" : "6 Meses"} | 
-                              Expira em: {new Date(login.expires_at).toLocaleDateString("pt-BR")}
+                              Expira em: {formatExpirationDate(login.expires_at)}
                             </p>
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
