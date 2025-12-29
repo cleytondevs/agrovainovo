@@ -5,8 +5,13 @@ let supabaseClient: ReturnType<typeof createClient> | null = null;
 async function initializeSupabase() {
   if (supabaseClient) return supabaseClient;
 
-  let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  // No Netlify, as variáveis de ambiente VITE_ são injetadas durante o build.
+  // Se elas não estiverem presentes no código compilado, usamos estes valores como fallback.
+  const DEFAULT_URL = "https://uocgvjfxfpxzecxplffa.supabase.co";
+  const DEFAULT_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvY2d2amZ4ZnB4emVjeHBsZmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4OTA4NzksImV4cCI6MjA4MjQ2Njg3OX0.1a3DK1gXo0XW2bA8sh5iaJEQqUZXx1FF3ZlwqZ-8afs";
+
+  let supabaseUrl = import.meta.env.VITE_SUPABASE_URL || DEFAULT_URL;
+  let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_KEY;
 
   if (supabaseUrl && supabaseAnonKey) {
     supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
