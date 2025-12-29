@@ -32,3 +32,15 @@ export async function createSoilAnalysis(analysis: InsertSoilAnalysis): Promise<
 export async function getSoilAnalysisByEmail(userEmail: string): Promise<SoilAnalysis[]> {
   return await db.select().from(soilAnalysis).where(eq(soilAnalysis.userEmail, userEmail));
 }
+
+export async function getAllSoilAnalysis(): Promise<SoilAnalysis[]> {
+  return await db.select().from(soilAnalysis);
+}
+
+export async function updateSoilAnalysisStatus(id: number, status: string): Promise<SoilAnalysis> {
+  const result = await db.update(soilAnalysis)
+    .set({ status })
+    .where(eq(soilAnalysis.id, id))
+    .returning();
+  return result[0];
+}

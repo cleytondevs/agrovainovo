@@ -6,6 +6,8 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   createSoilAnalysis(analysis: InsertSoilAnalysis): Promise<SoilAnalysis>;
+  getAllSoilAnalysis(): Promise<SoilAnalysis[]>;
+  updateSoilAnalysisStatus(id: number, status: string): Promise<SoilAnalysis>;
 }
 
 export class MemStorage implements IStorage {
@@ -51,6 +53,28 @@ export class MemStorage implements IStorage {
       const newAnalysis: SoilAnalysis = { ...analysis, id, createdAt: new Date() };
       this.soilAnalyses.set(id, newAnalysis);
       return newAnalysis;
+    }
+  }
+
+  async getAllSoilAnalysis(): Promise<SoilAnalysis[]> {
+    try {
+      return await dbClient.getAllSoilAnalysis();
+    } catch (error) {
+      console.warn("Failed to fetch all analyses from database, returning memory storage", error);
+      return Array.from(this.soilAnalyses.values());
+    }
+  }
+
+  async updateSoilAnalysisStatus(id: number, status: string): Promise<SoilAnalysis> {
+    try {
+      return await dbClient.updateSoilAnalysisStatus(id, status);
+    } catch (error) {
+      console.warn("Failed to update analysis status in database", error);
+      const analysis = this.soilAnalyses.get(id);
+      if (!analysis) throw new Error("Analysis not found");
+      const updated = { ...analysis, status };
+      this.soilAnalyses.set(id, updated);
+      return updated;
     }
   }
 }

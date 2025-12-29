@@ -78,5 +78,32 @@ export async function registerRoutes(
     }
   });
 
+  // Get all soil analyses (admin only)
+  app.get('/api/soil-analysis/all', async (req, res) => {
+    try {
+      const analyses = await storage.getAllSoilAnalysis();
+      res.json(analyses);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to fetch analyses" });
+    }
+  });
+
+  // Update soil analysis status
+  app.patch('/api/soil-analysis/:id/status', async (req, res) => {
+    try {
+      const { status } = req.body;
+      const id = parseInt(req.params.id);
+      
+      if (!status) {
+        return res.status(400).json({ error: "Status is required" });
+      }
+
+      const updated = await storage.updateSoilAnalysisStatus(id, status);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to update status" });
+    }
+  });
+
   return httpServer;
 }
