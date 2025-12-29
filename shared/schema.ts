@@ -77,6 +77,8 @@ export const logins = pgTable("logins", {
   password: text("password").notNull(),
   clientName: text("client_name"),
   email: text("email"),
+  plan: text("plan"),
+  expiresAt: timestamp("expires_at"),
   status: text("status").default("active"),
   createdAt: timestamp("created_at").defaultNow(),
 });
