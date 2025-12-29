@@ -22,15 +22,6 @@ function generatePassword(): string {
   return password;
 }
 
-function generateUsername(): string {
-  const adjectives = ["Blue", "Red", "Green", "Swift", "Happy", "Bold", "Smart", "Quick"];
-  const animals = ["Lion", "Tiger", "Eagle", "Fox", "Wolf", "Bear", "Hawk", "Panda"];
-  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const animal = animals[Math.floor(Math.random() * animals.length)];
-  const num = Math.floor(Math.random() * 1000);
-  return `${adj}${animal}${num}`;
-}
-
 const AdminDashboard = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -40,7 +31,6 @@ const AdminDashboard = () => {
   const [selectedAnalysis, setSelectedAnalysis] = useState<SoilAnalysis | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("analyses");
-  const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
 
   // Check admin password on mount
@@ -157,20 +147,20 @@ const AdminDashboard = () => {
 
   const createLoginMutation = useMutation({
     mutationFn: async () => {
-      const username = generateUsername();
+      if (!email) {
+        throw new Error("Email é obrigatório");
+      }
       const password = generatePassword();
       const { error } = await supabase.from('logins').insert({
-        username,
+        username: email,
         password,
-        client_name: clientName || "Sem nome",
-        email: email || null,
+        email: email,
         status: "active"
       });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
-      setClientName("");
       setEmail("");
       toast({ title: "Login gerado com sucesso!" });
     },
@@ -436,16 +426,7 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Nome do Cliente</label>
-                  <Input
-                    placeholder="Ex: João Silva"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    data-testid="input-client-name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email (opcional)</label>
+                  <label className="block text-sm font-medium mb-2">Email (será o usuário)</label>
                   <Input
                     type="email"
                     placeholder="Ex: joao@example.com"
@@ -480,14 +461,11 @@ const AdminDashboard = () => {
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-lg">{login.clientName}</h3>
+                              <h3 className="font-semibold text-lg">{login.email}</h3>
                               <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
                                 {login.status}
                               </span>
                             </div>
-                            {login.email && (
-                              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{login.email}</p>
-                            )}
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm">Usuário:</span>
