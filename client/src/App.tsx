@@ -17,7 +17,9 @@ function Router() {
       <Route path="/signup">
         <Redirect to="/" />
       </Route>
-      <Route path="/setup" component={SetupAccess} />
+      <Route path="/setup">
+        <Redirect to="/" />
+      </Route>
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/my-analyses" component={MyAnalyses} />
       <Route path="/admin" component={AdminDashboard} />

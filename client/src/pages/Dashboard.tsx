@@ -294,8 +294,8 @@ export default function Dashboard() {
                 <Sprout className="h-8 w-8 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Acesso ao Painel</CardTitle>
-            <CardDescription>Faça login para gerenciar sua fazenda</CardDescription>
+            <CardTitle className="text-2xl font-bold text-center">Acesso ao Painel</CardTitle>
+            <CardDescription className="text-center">Faça login para gerenciar sua fazenda</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
