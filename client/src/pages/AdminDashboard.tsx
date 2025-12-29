@@ -52,7 +52,7 @@ const AdminDashboard = () => {
       const { data, error } = await supabase
         .from('soil_analysis')
         .select('*')
-        .order('createdAt', { ascending: false });
+        .order('created_at', { ascending: false });
       if (error) throw error;
       
       // Map database snake_case to camelCase for frontend
