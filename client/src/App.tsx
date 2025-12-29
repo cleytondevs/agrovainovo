@@ -13,7 +13,7 @@ import MyAnalyses from "@/pages/MyAnalyses";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={SignUp} />
+      <Route path="/" component={Dashboard} />
       <Route path="/signup">
         <Redirect to="/" />
       </Route>
