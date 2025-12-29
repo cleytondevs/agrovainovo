@@ -8,19 +8,22 @@ async function initializeSupabase() {
   let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  // Always try to fetch from backend for most up-to-date credentials
-  try {
-    const response = await fetch('/api/config');
-    const config = await response.json();
-    if (config.supabaseUrl) supabaseUrl = config.supabaseUrl;
-    if (config.supabaseAnonKey) supabaseAnonKey = config.supabaseAnonKey;
-  } catch (e) {
-    console.warn("Could not fetch Supabase config from backend");
-  }
-
   if (supabaseUrl && supabaseAnonKey) {
     supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
   } else {
+    // Attempt to fetch from backend if environment variables are missing
+    try {
+      const response = await fetch('/api/config');
+      const config = await response.json();
+      if (config.supabaseUrl && config.supabaseAnonKey) {
+        supabaseClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
+      }
+    } catch (e) {
+      console.warn("Could not fetch Supabase config from backend");
+    }
+  }
+
+  if (!supabaseClient) {
     throw new Error("Supabase URL and Key are required");
   }
 
