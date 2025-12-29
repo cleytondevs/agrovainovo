@@ -124,12 +124,19 @@ export default function Dashboard() {
       if (user && activeTab === "overview") {
         fetchNews();
         try {
+          // Detectar localização por IP usando freeipapi.com
           const locRes = await fetch('https://freeipapi.com/api/json');
           const locData = await locRes.json();
           if (locData.latitude && locData.longitude) {
+            // Se tivermos as coordenadas, buscamos o clima real para essa região
             fetchWeather(locData.latitude, locData.longitude, locData.cityName);
+          } else {
+            // Fallback caso a API de IP não retorne coordenadas
+            fetchWeather(-23.5505, -46.6333, "São Paulo");
           }
         } catch (e) {
+          console.error("Location detection failed", e);
+          // Fallback para São Paulo em caso de erro na detecção
           fetchWeather(-23.5505, -46.6333, "São Paulo");
         }
       }
