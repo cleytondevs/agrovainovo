@@ -30,7 +30,8 @@ function calculateExpirationDate(planType: string): string {
   const daysMap: { [key: string]: number } = {
     "1_month": 30,
     "3_months": 90,
-    "6_months": 180
+    "6_months": 180,
+    "lifetime": 36500
   };
   const days = daysMap[planType] || 30;
   const expireDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
@@ -44,6 +45,12 @@ function formatExpirationDate(expiresAt: string | null): string {
     // Verificar se a data é válida
     if (isNaN(date.getTime())) {
       return "Data inválida";
+    }
+    // Check if it's a lifetime plan (date is more than 80 years in the future)
+    const now = new Date();
+    const yearsInFuture = (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
+    if (yearsInFuture > 80) {
+      return "Vitalício";
     }
     return date.toLocaleDateString("pt-BR");
   } catch (e) {
@@ -574,6 +581,7 @@ const AdminDashboard = () => {
                       <SelectItem value="1_month">1 Mês</SelectItem>
                       <SelectItem value="3_months">3 Meses</SelectItem>
                       <SelectItem value="6_months">6 Meses</SelectItem>
+                      <SelectItem value="lifetime">Vitalício</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -610,7 +618,7 @@ const AdminDashboard = () => {
                             </div>
                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{login.email}</p>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                              Plano: {login.plan === "1_month" ? "1 Mês" : login.plan === "3_months" ? "3 Meses" : "6 Meses"} | 
+                              Plano: {login.plan === "1_month" ? "1 Mês" : login.plan === "3_months" ? "3 Meses" : login.plan === "6_months" ? "6 Meses" : "Vitalício"} | 
                               Expira em: {formatExpirationDate(login.expires_at)}
                             </p>
                             <div className="space-y-2">
@@ -683,6 +691,7 @@ const AdminDashboard = () => {
                     <SelectItem value="1_month">1 Mês</SelectItem>
                     <SelectItem value="3_months">3 Meses</SelectItem>
                     <SelectItem value="6_months">6 Meses</SelectItem>
+                    <SelectItem value="lifetime">Vitalício</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
