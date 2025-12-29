@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { getDb, createAccessLink, checkAccessLink, decrementAccessLink } from "./db-client";
-import { insertSoilAnalysisSchema } from "@shared/schema";
+import { insertSoilAnalysisSchema, insertLoginSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -145,6 +145,41 @@ export async function registerRoutes(
       res.json(users);
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to fetch users" });
+    }
+  });
+
+  // Create new login
+  app.post('/api/logins', async (req, res) => {
+    try {
+      const validationResult = insertLoginSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: "Validation failed", details: validationResult.error.errors });
+      }
+      const login = await storage.createLogin(validationResult.data);
+      res.json(login);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to create login" });
+    }
+  });
+
+  // Get all logins
+  app.get('/api/logins', async (req, res) => {
+    try {
+      const logins = await storage.getAllLogins();
+      res.json(logins);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to fetch logins" });
+    }
+  });
+
+  // Delete login
+  app.delete('/api/logins/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteLogin(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete login" });
     }
   });
 

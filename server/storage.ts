@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type SoilAnalysis, type InsertSoilAnalysis } from "@shared/schema";
+import { type User, type InsertUser, type SoilAnalysis, type InsertSoilAnalysis, type Login, type InsertLogin } from "@shared/schema";
 import * as dbClient from "./db-client";
 
 export interface IStorage {
@@ -11,19 +11,26 @@ export interface IStorage {
   updateSoilAnalysisStatus(id: number, status: string): Promise<SoilAnalysis>;
   updateSoilAnalysisWithComments(id: number, status: string, adminComments: string, adminFileUrls: string): Promise<SoilAnalysis>;
   getAllUsers(): Promise<User[]>;
+  createLogin(login: InsertLogin): Promise<Login>;
+  getAllLogins(): Promise<Login[]>;
+  deleteLogin(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private soilAnalyses: Map<number, SoilAnalysis>;
+  private logins: Map<number, Login>;
   private currentId: number;
   private currentAnalysisId: number;
+  private currentLoginId: number;
 
   constructor() {
     this.users = new Map();
     this.soilAnalyses = new Map();
+    this.logins = new Map();
     this.currentId = 1;
     this.currentAnalysisId = 1;
+    this.currentLoginId = 1;
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -111,6 +118,22 @@ export class MemStorage implements IStorage {
       this.soilAnalyses.set(id, updated);
       return updated;
     }
+  }
+
+  async createLogin(login: InsertLogin): Promise<Login> {
+    const id = this.currentLoginId++;
+    // @ts-ignore
+    const newLogin: Login = { ...login, id, createdAt: new Date() };
+    this.logins.set(id, newLogin);
+    return newLogin;
+  }
+
+  async getAllLogins(): Promise<Login[]> {
+    return Array.from(this.logins.values());
+  }
+
+  async deleteLogin(id: number): Promise<void> {
+    this.logins.delete(id);
   }
 }
 

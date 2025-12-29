@@ -69,3 +69,22 @@ export const insertSoilAnalysisSchema = createInsertSchema(soilAnalysis).omit({
 
 export type SoilAnalysis = typeof soilAnalysis.$inferSelect;
 export type InsertSoilAnalysis = z.infer<typeof insertSoilAnalysisSchema>;
+
+// Login generator table
+export const logins = pgTable("logins", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  clientName: text("client_name"),
+  email: text("email"),
+  status: text("status").default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertLoginSchema = createInsertSchema(logins).omit({ 
+  id: true, 
+  createdAt: true 
+});
+
+export type Login = typeof logins.$inferSelect;
+export type InsertLogin = z.infer<typeof insertLoginSchema>;
