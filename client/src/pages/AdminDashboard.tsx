@@ -31,6 +31,7 @@ const AdminDashboard = () => {
   const [selectedAnalysis, setSelectedAnalysis] = useState<SoilAnalysis | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("analyses");
+  const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
 
   // Check admin password on mount
@@ -154,6 +155,7 @@ const AdminDashboard = () => {
       const { error } = await supabase.from('logins').insert({
         username: email,
         password,
+        client_name: clientName,
         email: email,
         status: "active"
       });
@@ -161,6 +163,7 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
+      setClientName("");
       setEmail("");
       toast({ title: "Login gerado com sucesso!" });
     },
@@ -426,6 +429,15 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
+                  <label className="block text-sm font-medium mb-2">Nome do Cliente</label>
+                  <Input
+                    placeholder="Ex: João Silva"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    data-testid="input-client-name"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium mb-2">Email (será o usuário)</label>
                   <Input
                     type="email"
@@ -461,11 +473,12 @@ const AdminDashboard = () => {
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-lg">{login.email}</h3>
+                              <h3 className="font-semibold text-lg">{login.clientName}</h3>
                               <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
                                 {login.status}
                               </span>
                             </div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{login.email}</p>
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm">Usuário:</span>
