@@ -7,7 +7,6 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import MyAnalyses from "@/pages/MyAnalyses";
-import LoginGenerator from "@/pages/LoginGenerator";
 
 function Router() {
   return (
@@ -22,7 +21,6 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/my-analyses" component={MyAnalyses} />
       <Route path="/admin" component={AdminDashboard} />
-      <Route path="/login-generator" component={LoginGenerator} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
