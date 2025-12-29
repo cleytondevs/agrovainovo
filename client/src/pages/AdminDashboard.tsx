@@ -27,7 +27,6 @@ function generatePassword(): string {
 function calculateExpirationDate(planType: string): string {
   const now = new Date();
   const daysMap: { [key: string]: number } = {
-    "1_minute": 0.000694, // 1 minuto em dias (para teste)
     "1_month": 30,
     "3_months": 90,
     "6_months": 180
@@ -659,7 +658,6 @@ const AdminDashboard = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1_minute">Teste 1 minuto</SelectItem>
                     <SelectItem value="1_month">1 Mês</SelectItem>
                     <SelectItem value="3_months">3 Meses</SelectItem>
                     <SelectItem value="6_months">6 Meses</SelectItem>
