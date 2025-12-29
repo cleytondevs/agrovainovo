@@ -105,5 +105,27 @@ export async function registerRoutes(
     }
   });
 
+  // Update soil analysis with comments and files
+  app.patch('/api/soil-analysis/:id/review', async (req, res) => {
+    try {
+      const { status, adminComments, adminFileUrls } = req.body;
+      const id = parseInt(req.params.id);
+      
+      if (!status) {
+        return res.status(400).json({ error: "Status is required" });
+      }
+
+      const updated = await storage.updateSoilAnalysisWithComments(
+        id,
+        status,
+        adminComments || "",
+        adminFileUrls || ""
+      );
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to update analysis" });
+    }
+  });
+
   return httpServer;
 }

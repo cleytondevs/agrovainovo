@@ -8,6 +8,7 @@ export interface IStorage {
   createSoilAnalysis(analysis: InsertSoilAnalysis): Promise<SoilAnalysis>;
   getAllSoilAnalysis(): Promise<SoilAnalysis[]>;
   updateSoilAnalysisStatus(id: number, status: string): Promise<SoilAnalysis>;
+  updateSoilAnalysisWithComments(id: number, status: string, adminComments: string, adminFileUrls: string): Promise<SoilAnalysis>;
 }
 
 export class MemStorage implements IStorage {
@@ -73,6 +74,19 @@ export class MemStorage implements IStorage {
       const analysis = this.soilAnalyses.get(id);
       if (!analysis) throw new Error("Analysis not found");
       const updated = { ...analysis, status };
+      this.soilAnalyses.set(id, updated);
+      return updated;
+    }
+  }
+
+  async updateSoilAnalysisWithComments(id: number, status: string, adminComments: string, adminFileUrls: string): Promise<SoilAnalysis> {
+    try {
+      return await dbClient.updateSoilAnalysisWithComments(id, status, adminComments, adminFileUrls);
+    } catch (error) {
+      console.warn("Failed to update analysis with comments in database", error);
+      const analysis = this.soilAnalyses.get(id);
+      if (!analysis) throw new Error("Analysis not found");
+      const updated = { ...analysis, status, adminComments, adminFileUrls };
       this.soilAnalyses.set(id, updated);
       return updated;
     }

@@ -44,3 +44,16 @@ export async function updateSoilAnalysisStatus(id: number, status: string): Prom
     .returning();
   return result[0];
 }
+
+export async function updateSoilAnalysisWithComments(
+  id: number,
+  status: string,
+  adminComments: string,
+  adminFileUrls: string
+): Promise<SoilAnalysis> {
+  const result = await db.update(soilAnalysis)
+    .set({ status, adminComments, adminFileUrls, updatedAt: new Date() })
+    .where(eq(soilAnalysis.id, id))
+    .returning();
+  return result[0];
+}

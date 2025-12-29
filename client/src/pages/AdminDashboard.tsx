@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { LogOut, Check, X, Clock } from "lucide-react";
+import { LogOut, Check, X, Clock, Edit2 } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { AdminAnalysisModal } from "./AdminAnalysisModal";
 import type { SoilAnalysis } from "@shared/schema";
 
 const AdminDashboard = () => {
@@ -16,6 +17,8 @@ const AdminDashboard = () => {
   const [adminPassword, setAdminPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<SoilAnalysis | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Check admin password on mount
   useEffect(() => {
@@ -56,6 +59,23 @@ const AdminDashboard = () => {
     },
     onError: () => {
       toast({ variant: "destructive", title: "Erro ao atualizar status" });
+    },
+  });
+
+  const submitAnalysisMutation = useMutation({
+    mutationFn: (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) =>
+      apiRequest("PATCH", `/api/soil-analysis/${data.id}/review`, {
+        status: data.status,
+        adminComments: data.adminComments,
+        adminFileUrls: data.adminFileUrls,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
+      toast({ title: "Análise salva com sucesso" });
+      setModalOpen(false);
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao salvar análise" });
     },
   });
 
@@ -178,6 +198,18 @@ const AdminDashboard = () => {
                             <Button
                               size="sm"
                               variant="outline"
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              onClick={() => {
+                                setSelectedAnalysis(analysis);
+                                setModalOpen(true);
+                              }}
+                              data-testid={`button-edit-${analysis.id}`}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
                               className="text-green-600 border-green-200 hover:bg-green-50"
                               onClick={() =>
                                 updateStatusMutation.mutate({
@@ -215,6 +247,19 @@ const AdminDashboard = () => {
             </Card>
           </div>
         )}
+
+        {/* Modal */}
+        <AdminAnalysisModal
+          open={modalOpen}
+          analysis={selectedAnalysis}
+          onClose={() => setModalOpen(false)}
+          onSubmit={(data) =>
+            submitAnalysisMutation.mutateAsync({
+              id: selectedAnalysis!.id,
+              ...data,
+            })
+          }
+        />
       </div>
     </div>
   );

@@ -53,12 +53,18 @@ export const soilAnalysis = pgTable("soil_analysis", {
   organicMatter: decimal("organic_matter", { precision: 5, scale: 2 }),
   status: text("status").default("pending"),
   notes: text("notes"),
+  adminComments: text("admin_comments"),
+  adminFileUrls: text("admin_file_urls"),
+  updatedAt: timestamp("updated_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertSoilAnalysisSchema = createInsertSchema(soilAnalysis).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
+  adminComments: true,
+  adminFileUrls: true,
 });
 
 export type SoilAnalysis = typeof soilAnalysis.$inferSelect;
