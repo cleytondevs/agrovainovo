@@ -73,7 +73,7 @@ export type InsertSoilAnalysis = z.infer<typeof insertSoilAnalysisSchema>;
 // Login generator table
 export const logins = pgTable("logins", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  username: text("username"),
   password: text("password").notNull(),
   clientName: text("client_name"),
   email: text("email"),
