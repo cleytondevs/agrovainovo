@@ -35,11 +35,23 @@ export default function MyAnalyses() {
       const { data, error } = await supabase
         .from('soil_analysis')
         .select('*')
-        .eq('userEmail', user?.email)
-        .order('createdAt', { ascending: false });
+        .eq('user_email', user?.email)
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      
+      // Map database snake_case to camelCase for frontend
+      return (data || []).map((a: any) => ({
+        ...a,
+        fieldName: a.field_name,
+        cropType: a.crop_type,
+        userEmail: a.user_email,
+        organicMatter: a.organic_matter,
+        adminComments: a.admin_comments,
+        adminFileUrls: a.admin_file_urls,
+        updatedAt: a.updated_at,
+        createdAt: a.created_at
+      }));
     },
     enabled: !!user?.email,
     staleTime: 1000 * 60 * 5,

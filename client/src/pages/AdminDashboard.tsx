@@ -49,9 +49,24 @@ const AdminDashboard = () => {
   const { data: analyses = [], isLoading } = useQuery<SoilAnalysis[]>({
     queryKey: ["/api/soil-analysis/all"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('soil_analysis').select('*').order('createdAt', { ascending: false });
+      const { data, error } = await supabase
+        .from('soil_analysis')
+        .select('*')
+        .order('createdAt', { ascending: false });
       if (error) throw error;
-      return data || [];
+      
+      // Map database snake_case to camelCase for frontend
+      return (data || []).map((a: any) => ({
+        ...a,
+        fieldName: a.field_name,
+        cropType: a.crop_type,
+        userEmail: a.user_email,
+        organicMatter: a.organic_matter,
+        adminComments: a.admin_comments,
+        adminFileUrls: a.admin_file_urls,
+        updatedAt: a.updated_at,
+        createdAt: a.created_at
+      }));
     },
     enabled: isAuthenticated,
   });
@@ -61,7 +76,11 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from('users').select('*');
       if (error) throw error;
-      return data || [];
+      return (data || []).map((u: any) => ({
+        ...u,
+        hasAccessed: u.has_accessed,
+        createdAt: u.created_at
+      }));
     },
     enabled: isAuthenticated,
   });

@@ -87,7 +87,19 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
       // Salvamos diretamente no Supabase para garantir persistência.
       const { data: insertedData, error: sbError } = await supabase
         .from('soil_analysis')
-        .insert([analysisData]);
+        .insert([{
+          field_name: data.fieldName,
+          crop_type: data.cropType,
+          pH: data.pH || null,
+          nitrogen: data.nitrogen || null,
+          phosphorus: data.phosphorus || null,
+          potassium: data.potassium || null,
+          moisture: data.moisture || null,
+          organic_matter: data.organicMatter || null,
+          notes: data.notes || "",
+          user_email: userEmail,
+          status: "pending"
+        }]);
 
       if (sbError) throw sbError;
 
