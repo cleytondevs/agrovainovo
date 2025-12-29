@@ -41,15 +41,27 @@ Preferred communication style: Simple, everyday language.
 - **Security**: The anon key is stored as a Replit secret and exposed to frontend via environment variable
 
 ### Deployment Notes
-**For Netlify (or other platforms):**
-1. Add these environment variables in Netlify's build settings:
-   - `VITE_SUPABASE_URL` - Your Supabase project URL (e.g., `https://xxx.supabase.co`)
-   - `SUPABASE_ANON_KEY` - Your Supabase anonymous key
-   - `VITE_SUPABASE_URL` can also be set directly as an environment variable if preferred
-2. The build script (`npm run build`) automatically calls `server/setup-env.mjs` which reads these environment variables and prepares the build
-3. The `.env.local` file is created during build time and is not committed to Git
-4. Make sure build command is set to: `npm run build`
-5. Publish directory should be: `dist/public`
+**For Netlify (Required for Supabase login to work):**
+
+1. **Go to your Netlify site → Site settings → Build & deploy → Environment**
+2. **Add these environment variables:**
+   - Name: `VITE_SUPABASE_URL` | Value: Your Supabase project URL (e.g., `https://xxx.supabase.co`)
+   - Name: `SUPABASE_ANON_KEY` | Value: Your Supabase anonymous/public key
+
+3. **Verify build settings:**
+   - Build command: `npm run build`
+   - Publish directory: `dist/public`
+   - Base directory: (leave empty)
+
+4. **How it works:**
+   - During build, `npm run build` calls `server/setup-env.mjs` 
+   - `setup-env.mjs` reads the environment variables and creates `.env.local`
+   - Vite compiles the frontend with Supabase credentials embedded
+   - The server also has access to `SUPABASE_ANON_KEY` at runtime (fallback if frontend needs it)
+
+5. **Testing:**
+   - After deploy, check browser console for "[Supabase Init]" messages
+   - If you see errors, check Netlify build logs for environment variable warnings
 
 ### Data Storage
 - **ORM**: Drizzle ORM configured for PostgreSQL

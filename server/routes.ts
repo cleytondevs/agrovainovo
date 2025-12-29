@@ -18,9 +18,37 @@ export async function registerRoutes(
 
   // Serve config with Supabase credentials
   app.get('/api/config', (req, res) => {
+    // Try multiple environment variable names for cross-platform compatibility
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '';
+    
+    console.log('[API/CONFIG] Supabase config requested:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseAnonKey,
+      urlPrefix: supabaseUrl.substring(0, 30)
+    });
+    
     res.json({
-      supabaseUrl: process.env.SUPABASE_URL || '',
-      supabaseAnonKey: process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || ''
+      supabaseUrl,
+      supabaseAnonKey
+    });
+  });
+
+  // Debug endpoint to show all Supabase-related env vars (only in non-production)
+  app.get('/api/debug/supabase-config', (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    
+    res.json({
+      'VITE_SUPABASE_URL': process.env.VITE_SUPABASE_URL ? '✓ SET' : '✗ MISSING',
+      'SUPABASE_URL': process.env.SUPABASE_URL ? '✓ SET' : '✗ MISSING',
+      'SUPABASE_ANON_KEY': process.env.SUPABASE_ANON_KEY ? '✓ SET' : '✗ MISSING',
+      'VITE_SUPABASE_ANON_KEY': process.env.VITE_SUPABASE_ANON_KEY ? '✓ SET' : '✗ MISSING',
+      'SUPABASE_KEY': process.env.SUPABASE_KEY ? '✓ SET' : '✗ MISSING',
+      'NODE_ENV': process.env.NODE_ENV,
+      'resolved_url': process.env.VITE_SUPABASE_URL ? process.env.VITE_SUPABASE_URL.substring(0, 40) : 'MISSING',
+      'resolved_key_exists': !!process.env.SUPABASE_ANON_KEY || !!process.env.VITE_SUPABASE_ANON_KEY
     });
   });
 

@@ -9,12 +9,22 @@ async function initializeSupabase() {
   let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+  console.log('[Supabase Init] Checking environment variables:', {
+    hasUrlFromEnv: !!supabaseUrl,
+    hasKeyFromEnv: !!supabaseAnonKey
+  });
+
   // Fallback: tenta obter as chaves do backend se não estiverem presentes
   if (!supabaseUrl || !supabaseAnonKey) {
+    console.log('[Supabase Init] Missing credentials from env, fetching from /api/config...');
     try {
       const response = await fetch('/api/config');
       if (response.ok) {
         const config = await response.json();
+        console.log('[Supabase Init] Config from backend:', {
+          hasUrl: !!config.supabaseUrl,
+          hasKey: !!config.supabaseAnonKey
+        });
         supabaseUrl = config.supabaseUrl || supabaseUrl;
         supabaseAnonKey = config.supabaseAnonKey || supabaseAnonKey;
       }
@@ -24,14 +34,15 @@ async function initializeSupabase() {
   }
 
   if (supabaseUrl && supabaseAnonKey) {
+    console.log('[Supabase Init] Successfully obtained credentials, creating client');
     supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
   } else {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (isLocal) {
-      throw new Error("Supabase URL and Key são necessários. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no seu arquivo .env");
-    } else {
-      throw new Error("Erro de Configuração: Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.");
-    }
+    const errorMsg = isLocal 
+      ? "Supabase URL and Key são necessários. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no seu arquivo .env"
+      : "Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.";
+    console.error('[Supabase Init] Missing configuration:', errorMsg);
+    throw new Error(errorMsg);
   }
 
   return supabaseClient;
