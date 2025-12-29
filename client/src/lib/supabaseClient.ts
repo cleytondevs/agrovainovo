@@ -14,17 +14,25 @@ async function initializeSupabase() {
     // Attempt to fetch from backend if environment variables are missing
     try {
       const response = await fetch('/api/config');
-      const config = await response.json();
-      if (config.supabaseUrl && config.supabaseAnonKey) {
-        supabaseClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
+      if (response.ok) {
+        const config = await response.json();
+        if (config.supabaseUrl && config.supabaseAnonKey) {
+          supabaseClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
+        }
       }
     } catch (e) {
-      console.warn("Could not fetch Supabase config from backend");
+      // Silently fail as we might be in a static environment
     }
   }
 
   if (!supabaseClient) {
-    throw new Error("Supabase URL and Key are required");
+    // If we're still without a client, we check if we're on localhost to provide a better error
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal) {
+      throw new Error("Supabase URL and Key are required. Check your .env file.");
+    } else {
+      throw new Error("Erro de Configuração: As chaves do Supabase não foram encontradas no Netlify.");
+    }
   }
 
   return supabaseClient;
