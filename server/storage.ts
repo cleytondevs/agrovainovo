@@ -121,19 +121,36 @@ export class MemStorage implements IStorage {
   }
 
   async createLogin(login: InsertLogin): Promise<Login> {
-    const id = this.currentLoginId++;
-    // @ts-ignore
-    const newLogin: Login = { ...login, id, createdAt: new Date() };
-    this.logins.set(id, newLogin);
-    return newLogin;
+    try {
+      // Try to save to database first
+      return await dbClient.createLogin(login);
+    } catch (error) {
+      // Fallback to memory storage if database is not available
+      console.warn("Database connection failed, using memory storage for login", error);
+      const id = this.currentLoginId++;
+      // @ts-ignore
+      const newLogin: Login = { ...login, id, createdAt: new Date() };
+      this.logins.set(id, newLogin);
+      return newLogin;
+    }
   }
 
   async getAllLogins(): Promise<Login[]> {
-    return Array.from(this.logins.values());
+    try {
+      return await dbClient.getAllLogins();
+    } catch (error) {
+      console.warn("Failed to fetch all logins from database, returning memory storage", error);
+      return Array.from(this.logins.values());
+    }
   }
 
   async deleteLogin(id: number): Promise<void> {
-    this.logins.delete(id);
+    try {
+      await dbClient.deleteLogin(id);
+    } catch (error) {
+      console.warn("Failed to delete login from database, using memory storage", error);
+      this.logins.delete(id);
+    }
   }
 }
 

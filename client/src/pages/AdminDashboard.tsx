@@ -183,18 +183,31 @@ const AdminDashboard = () => {
       if (!email) {
         throw new Error("Email é obrigatório");
       }
+      // Normalize email: trim and lowercase
+      const normalizedEmail = email.trim().toLowerCase();
       const password = generatePassword();
       const expiresAt = calculateExpirationDate(plan);
+      
+      console.log('[AdminDashboard] Creating login:', {
+        email: normalizedEmail,
+        clientName,
+        plan,
+        expiresAt
+      });
+      
       const { error } = await supabase.from('logins').insert({
-        username: email,
+        username: normalizedEmail,
         password,
         client_name: clientName,
-        email: email,
+        email: normalizedEmail,
         plan: plan,
         expires_at: expiresAt,
         status: "active"
       });
-      if (error) throw error;
+      if (error) {
+        console.error('[AdminDashboard] Failed to create login:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });

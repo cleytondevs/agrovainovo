@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { accessLinks, soilAnalysis, users, type AccessLink, type SoilAnalysis, type InsertSoilAnalysis, type User } from "@shared/schema";
+import { accessLinks, soilAnalysis, users, logins, type AccessLink, type SoilAnalysis, type InsertSoilAnalysis, type User, type Login, type InsertLogin } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export async function getAllUsers(): Promise<User[]> {
@@ -60,4 +60,17 @@ export async function updateSoilAnalysisWithComments(
     .where(eq(soilAnalysis.id, id))
     .returning();
   return result[0];
+}
+
+export async function createLogin(login: InsertLogin): Promise<Login> {
+  const result = await db.insert(logins).values(login).returning();
+  return result[0];
+}
+
+export async function getAllLogins(): Promise<Login[]> {
+  return await db.select().from(logins);
+}
+
+export async function deleteLogin(id: number): Promise<void> {
+  await db.delete(logins).where(eq(logins.id, id));
 }
