@@ -40,6 +40,17 @@ Preferred communication style: Simple, everyday language.
 - The backend doesn't handle auth directly; Supabase manages user sessions
 - **Security**: The anon key is stored as a Replit secret and exposed to frontend via environment variable
 
+### Deployment Notes
+**For Netlify (or other platforms):**
+1. Add these environment variables in Netlify's build settings:
+   - `VITE_SUPABASE_URL` - Your Supabase project URL (e.g., `https://xxx.supabase.co`)
+   - `SUPABASE_ANON_KEY` - Your Supabase anonymous key
+   - `VITE_SUPABASE_URL` can also be set directly as an environment variable if preferred
+2. The build script (`npm run build`) automatically calls `server/setup-env.mjs` which reads these environment variables and prepares the build
+3. The `.env.local` file is created during build time and is not committed to Git
+4. Make sure build command is set to: `npm run build`
+5. Publish directory should be: `dist/public`
+
 ### Data Storage
 - **ORM**: Drizzle ORM configured for PostgreSQL
 - **Schema Location**: `shared/schema.ts`

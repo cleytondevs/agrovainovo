@@ -1,6 +1,7 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
+import { spawnSync } from "child_process";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -34,6 +35,18 @@ const allowlist = [
 
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
+
+  // Setup environment variables before build
+  console.log("setting up environment...");
+  const setupResult = spawnSync("node", ["server/setup-env.mjs"], {
+    stdio: "inherit",
+    env: process.env
+  });
+  
+  if (setupResult.status !== 0) {
+    console.error("Failed to setup environment");
+    process.exit(1);
+  }
 
   console.log("building client...");
   await viteBuild();
