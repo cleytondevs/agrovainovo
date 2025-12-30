@@ -52,7 +52,20 @@ exports.handler = async (event: any) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    console.log("[CREATE-LOGIN-WITH-AUTH] Creating user for:", normalizedEmail);
+    
+    // Validate plan value
+    const validPlans = ["1_month", "3_months", "6_months", "lifetime"];
+    if (!validPlans.includes(plan)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ 
+          error: "Invalid plan. Must be one of: 1_month, 3_months, 6_months, lifetime",
+          receivedPlan: plan
+        }),
+      };
+    }
+
+    console.log("[CREATE-LOGIN-WITH-AUTH] Creating user for:", normalizedEmail, "Plan:", plan);
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
