@@ -350,6 +350,26 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Login has expired" });
       }
 
+      // Verify user still exists in Supabase Auth
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+      if (serviceRoleKey) {
+        try {
+          const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+          const { data: users, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+          
+          if (!userError && users) {
+            const userExists = users.users.some(u => u.email?.toLowerCase() === normalizedEmail);
+            if (!userExists) {
+              console.log('[VERIFY-LOGIN] User deleted from Supabase Auth:', normalizedEmail);
+              return res.status(401).json({ error: "Invalid credentials" });
+            }
+          }
+        } catch (e) {
+          console.warn('[VERIFY-LOGIN] Could not validate user existence:', e);
+          // Continue if we can't verify - better UX than blocking all logins
+        }
+      }
+
       console.log('[VERIFY-LOGIN] Successful login for:', normalizedEmail);
       res.json({ 
         success: true, 

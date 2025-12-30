@@ -103,16 +103,21 @@ shared/           # Shared between client/server
 ## Recent Fixes (2025-12-30)
 
 ### Session Validation with Deleted Users
-**Issue**: When a user was deleted from Supabase, the session remained valid in the browser and user could still access the dashboard.
+**Issue**: When a user was deleted from Supabase, the session remained valid in the browser and user could still access the dashboard. Additionally, deleted users could still login through the admin login endpoint.
 
-**Solution**: Added session validation to detect when a user is deleted:
+**Solution**: Added multi-layer validation to prevent deleted users from accessing the app:
+
 1. **useAuth hook** - Validates session on load and when auth state changes. If user doesn't exist, automatically signs out.
+
 2. **Dashboard component** - Added periodic validation every 30 seconds. If user was deleted, clears session and signs out.
 
+3. **verify-login endpoint** - Added verification that user still exists in Supabase Auth before allowing login. Even if credentials exist in the logins table, login fails if user was deleted from Supabase Auth.
+
 **How it works**:
-- When user logs in, we validate that they still exist in Supabase
-- If validation fails (user was deleted), we clear the session and sign them out
+- When user logs in, we validate that credentials exist in logins table AND user still exists in Supabase Auth
+- If either check fails (user was deleted), login is rejected with "Invalid credentials" error
 - Dashboard checks session validity every 30 seconds to catch deleted users immediately
+- Session is automatically cleared if user is found to be deleted during periodic validation
 
 ## External Dependencies
 
