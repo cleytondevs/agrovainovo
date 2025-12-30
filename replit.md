@@ -94,6 +94,12 @@ shared/           # Shared between client/server
 - **Production Build**: `npm run build` - Bundles client with Vite, server with esbuild
 - **Output**: `dist/public` for client, `dist/index.cjs` for server
 
+## Integration Status
+
+### GitHub
+- **Status**: Not connected (user declined Replit integration setup)
+- **Note**: If needed in the future, can set up via Replit's GitHub connector or provide personal access token as secret
+
 ## External Dependencies
 
 ### Supabase
