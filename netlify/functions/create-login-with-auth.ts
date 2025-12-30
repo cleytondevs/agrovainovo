@@ -1,8 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
-export default async (req: any) => {
+export default async (event: any) => {
+  console.log("[CREATE-LOGIN-WITH-AUTH] Function started");
+  console.log("[CREATE-LOGIN-WITH-AUTH] Method:", event.httpMethod || "UNKNOWN");
+  
   // Apenas aceita POST
-  if (req.method !== "POST") {
+  if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
       body: JSON.stringify({ error: "Method not allowed" }),
@@ -10,7 +13,7 @@ export default async (req: any) => {
   }
 
   try {
-    let body = req.body;
+    let body = event.body;
     
     // Parse body se for string
     if (typeof body === "string") {
@@ -18,6 +21,8 @@ export default async (req: any) => {
     }
     
     const { email, password, clientName, plan, expiresAt } = body;
+
+    console.log("[CREATE-LOGIN-WITH-AUTH] Request data:", { email, clientName, plan });
 
     // Validar campos obrigatórios
     if (!email || !password) {
@@ -28,8 +33,17 @@ export default async (req: any) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    
+    // Tentar obter URL do Supabase de diferentes sources
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    console.log("[CREATE-LOGIN-WITH-AUTH] Environment variables check:", {
+      SUPABASE_URL: !!process.env.SUPABASE_URL,
+      VITE_SUPABASE_URL: !!process.env.VITE_SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      urlLength: supabaseUrl?.length || 0,
+    });
 
     // Verificar variáveis de ambiente
     if (!supabaseUrl || !serviceRoleKey) {
@@ -39,7 +53,10 @@ export default async (req: any) => {
       });
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Supabase not configured" }),
+        body: JSON.stringify({ 
+          error: "Supabase not configured",
+          details: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables"
+        }),
       };
     }
 
