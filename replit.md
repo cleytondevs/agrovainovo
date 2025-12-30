@@ -100,6 +100,20 @@ shared/           # Shared between client/server
 - **Status**: Not connected (user declined Replit integration setup)
 - **Note**: If needed in the future, can set up via Replit's GitHub connector or provide personal access token as secret
 
+## Recent Fixes (2025-12-30)
+
+### Session Validation with Deleted Users
+**Issue**: When a user was deleted from Supabase, the session remained valid in the browser and user could still access the dashboard.
+
+**Solution**: Added session validation to detect when a user is deleted:
+1. **useAuth hook** - Validates session on load and when auth state changes. If user doesn't exist, automatically signs out.
+2. **Dashboard component** - Added periodic validation every 30 seconds. If user was deleted, clears session and signs out.
+
+**How it works**:
+- When user logs in, we validate that they still exist in Supabase
+- If validation fails (user was deleted), we clear the session and sign them out
+- Dashboard checks session validity every 30 seconds to catch deleted users immediately
+
 ## External Dependencies
 
 ### Supabase

@@ -166,8 +166,15 @@ export default function Dashboard() {
         // Use getSupabaseClient to ensure Supabase is initialized
         const { getSupabaseClient } = await import("@/lib/supabaseClient");
         const client = await getSupabaseClient();
-        const { data: { user } } = await client.auth.getUser();
-        setUser(user);
+        const { data: { user }, error } = await client.auth.getUser();
+        
+        // If user doesn't exist or there's an error, user was deleted
+        if (!user || error) {
+          setUser(null);
+          await client.auth.signOut();
+        } else {
+          setUser(user);
+        }
       } catch (e) {
         console.error("Auth check failed", e);
       } finally {
@@ -175,6 +182,10 @@ export default function Dashboard() {
       }
     };
     checkUser();
+    
+    // Validate session periodically (every 30 seconds)
+    const interval = setInterval(checkUser, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const onLogin = async (data: LoginFormValues) => {
