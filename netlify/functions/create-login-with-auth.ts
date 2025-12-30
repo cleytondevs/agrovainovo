@@ -1,48 +1,70 @@
 import { createClient } from "@supabase/supabase-js";
 
-export default async (req: any, context: any) => {
+export default async (req: any) => {
+  // Apenas aceita POST
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
   }
 
   try {
-    const { email, password, clientName, plan, expiresAt } = JSON.parse(req.body || "{}");
+    let body = req.body;
+    
+    // Parse body se for string
+    if (typeof body === "string") {
+      body = JSON.parse(body);
+    }
+    
+    const { email, password, clientName, plan, expiresAt } = body;
 
+    // Validar campos obrigatórios
     if (!email || !password) {
-      return new Response(JSON.stringify({ error: "Email and password required" }), { status: 400 });
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Email and password required" }),
+      };
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+    // Verificar variáveis de ambiente
     if (!supabaseUrl || !serviceRoleKey) {
-      console.error("[CREATE-LOGIN-WITH-AUTH] Missing Supabase configuration");
-      return new Response(JSON.stringify({ error: "Supabase not configured" }), { status: 500 });
+      console.error("[CREATE-LOGIN-WITH-AUTH] Missing Supabase configuration", {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!serviceRoleKey,
+      });
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Supabase not configured" }),
+      };
     }
 
     console.log("[CREATE-LOGIN-WITH-AUTH] Creating user for email:", normalizedEmail);
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    // Create user in Supabase Auth
+    // Criar usuário em Supabase Auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: normalizedEmail,
-      password: password,
+      password,
       email_confirm: true,
     });
 
     if (authError) {
       console.error("[CREATE-LOGIN-WITH-AUTH] Failed to create auth user:", authError);
-      return new Response(
-        JSON.stringify({ error: `Failed to create Supabase user: ${authError.message}` }),
-        { status: 500 }
-      );
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: `Failed to create Supabase user: ${authError.message}` }),
+      };
     }
 
     console.log("[CREATE-LOGIN-WITH-AUTH] Auth user created:", authUser?.id);
 
-    // Now insert into logins table
+    // Inserir no banco de dados
     const { error: insertError } = await supabaseAdmin.from("logins").insert({
       username: normalizedEmail,
       password,
@@ -55,27 +77,36 @@ export default async (req: any, context: any) => {
 
     if (insertError) {
       console.error("[CREATE-LOGIN-WITH-AUTH] Failed to insert login record:", insertError);
-      // Try to delete the auth user if we can't insert the login
-      await supabaseAdmin.auth.admin.deleteUser(authUser!.id);
-      return new Response(
-        JSON.stringify({ error: `Failed to create login record: ${insertError.message}` }),
-        { status: 500 }
-      );
+      
+      // Tentar deletar o usuário se não conseguir inserir o login
+      try {
+        await supabaseAdmin.auth.admin.deleteUser(authUser!.id);
+      } catch (deleteError) {
+        console.error("[CREATE-LOGIN-WITH-AUTH] Failed to cleanup auth user:", deleteError);
+      }
+      
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: `Failed to create login record: ${insertError.message}` }),
+      };
     }
 
     console.log("[CREATE-LOGIN-WITH-AUTH] Login record created successfully");
 
-    return new Response(
-      JSON.stringify({
+    // Retorno de sucesso
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        ok: true,
         success: true,
         message: "Login criado com sucesso e usuário adicionado ao Supabase Authentication",
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    };
   } catch (error: any) {
     console.error("[CREATE-LOGIN-WITH-AUTH] Exception:", error);
-    return new Response(JSON.stringify({ error: error.message || "Failed to create login with auth" }), {
-      status: 500,
-    });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message || "Failed to create login with auth" }),
+    };
   }
 };
