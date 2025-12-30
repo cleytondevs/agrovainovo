@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS logins (
   password TEXT NOT NULL,
   client_name TEXT,
   email TEXT,
+  plan TEXT DEFAULT '1_month',
+  expires_at TIMESTAMP,
   status TEXT DEFAULT 'active',
   created_at TIMESTAMP DEFAULT NOW()
 );

@@ -223,8 +223,17 @@ const AdminDashboard = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Falha ao criar login');
+        let errorMessage = 'Falha ao criar login';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Response is not JSON (likely HTML error page)
+          const text = await response.text();
+          console.error('[AdminDashboard] Non-JSON error response:', text.substring(0, 200));
+          errorMessage = `Erro no servidor (${response.status}): ${text.substring(0, 100)}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
