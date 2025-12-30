@@ -1,8 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-export default async (event: any) => {
+exports.handler = async (event: any) => {
   console.log("[CREATE-LOGIN-WITH-AUTH] Function started");
-  console.log("[CREATE-LOGIN-WITH-AUTH] Method:", event.httpMethod || "UNKNOWN");
   
   // Apenas aceita POST
   if (event.httpMethod !== "POST") {
@@ -13,6 +12,28 @@ export default async (event: any) => {
   }
 
   try {
+    // Verificar variáveis de ambiente PRIMEIRO
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+    console.log("[CREATE-LOGIN-WITH-AUTH] Environment check:", {
+      hasUrl: supabaseUrl.length > 0,
+      hasKey: serviceRoleKey.length > 0,
+    });
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ 
+          error: "Environment variables not configured",
+          missing: {
+            SUPABASE_URL: !supabaseUrl,
+            SUPABASE_SERVICE_ROLE_KEY: !serviceRoleKey
+          }
+        }),
+      };
+    }
+
     let body = event.body;
     
     // Parse body se for string
@@ -21,8 +42,6 @@ export default async (event: any) => {
     }
     
     const { email, password, clientName, plan, expiresAt } = body;
-
-    console.log("[CREATE-LOGIN-WITH-AUTH] Request data:", { email, clientName, plan });
 
     // Validar campos obrigatórios
     if (!email || !password) {
@@ -33,34 +52,7 @@ export default async (event: any) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    
-    // Tentar obter URL do Supabase de diferentes sources
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    console.log("[CREATE-LOGIN-WITH-AUTH] Environment variables check:", {
-      SUPABASE_URL: !!process.env.SUPABASE_URL,
-      VITE_SUPABASE_URL: !!process.env.VITE_SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      urlLength: supabaseUrl?.length || 0,
-    });
-
-    // Verificar variáveis de ambiente
-    if (!supabaseUrl || !serviceRoleKey) {
-      console.error("[CREATE-LOGIN-WITH-AUTH] Missing Supabase configuration", {
-        hasUrl: !!supabaseUrl,
-        hasKey: !!serviceRoleKey,
-      });
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ 
-          error: "Supabase not configured",
-          details: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables"
-        }),
-      };
-    }
-
-    console.log("[CREATE-LOGIN-WITH-AUTH] Creating user for email:", normalizedEmail);
+    console.log("[CREATE-LOGIN-WITH-AUTH] Creating user for:", normalizedEmail);
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
