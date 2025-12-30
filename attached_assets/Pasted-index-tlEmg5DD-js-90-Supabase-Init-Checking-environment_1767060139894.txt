@@ -1,0 +1,45 @@
+index-tlEmg5DD.js:90 [Supabase Init] Checking environment variables: Object
+index-tlEmg5DD.js:90 [Supabase Init] Missing credentials from env, fetching from /api/config...
+index-tlEmg5DD.js:90 [Supabase Init] Checking environment variables: Object
+index-tlEmg5DD.js:90 [Supabase Init] Missing credentials from env, fetching from /api/config...
+tab.js:1 Refused to execute inline script because it violates the following Content Security Policy directive: "script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' chrome-extension://9bfc421c-f0db-4b2e-bfbc-a3f2cdc6cc9b/". Either the 'unsafe-inline' keyword, a hash ('sha256-kPx0AsF0oz2kKiZ875xSvv693TBHkQ/0SkMJZnnNpnQ='), or a nonce ('nonce-...') is required to enable inline execution.
+
+(anonymous) @ tab.js:1
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+index-tlEmg5DD.js:90 Failed to fetch Supabase config from backend: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+X0 @ index-tlEmg5DD.js:90
+index-tlEmg5DD.js:90 [Supabase Init] Missing configuration: Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.
+X0 @ index-tlEmg5DD.js:90
+index-tlEmg5DD.js:90 Failed to initialize Supabase: Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.
+(anonymous) @ index-tlEmg5DD.js:90
+index-tlEmg5DD.js:90 Failed to fetch Supabase config from backend: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+X0 @ index-tlEmg5DD.js:90
+index-tlEmg5DD.js:90 [Supabase Init] Missing configuration: Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.
+X0 @ index-tlEmg5DD.js:90
+index-tlEmg5DD.js:94 Auth check failed Error: Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.
+    at X0 (index-tlEmg5DD.js:90:43248)
+    at async index-tlEmg5DD.js:94:4628
+(anonymous) @ index-tlEmg5DD.js:94
+(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+/api/verify-login:1  Failed to load resource: the server responded with a status of 404 ()
+index-tlEmg5DD.js:90 [Supabase Init] Checking environment variables: Object
+index-tlEmg5DD.js:90 [Supabase Init] Missing credentials from env, fetching from /api/config...
+index-tlEmg5DD.js:90 Failed to fetch Supabase config from backend: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+X0 @ index-tlEmg5DD.js:90
+index-tlEmg5DD.js:90 [Supabase Init] Missing configuration: Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.
+X0 @ index-tlEmg5DD.js:90
+/api/verify-login:1  Failed to load resource: the server responded with a status of 404 ()
+index-tlEmg5DD.js:90 [Supabase Init] Checking environment variables: Object
+index-tlEmg5DD.js:90 [Supabase Init] Missing credentials from env, fetching from /api/config...
+index-tlEmg5DD.js:90 Failed to fetch Supabase config from backend: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+X0 @ index-tlEmg5DD.js:90
+index-tlEmg5DD.js:90 [Supabase Init] Missing configuration: Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.
+X0 @ index-tlEmg5DD.js:90
+/api/verify-login:1  Failed to load resource: the server responded with a status of 404 ()
+index-tlEmg5DD.js:90 [Supabase Init] Checking environment variables: Object
+index-tlEmg5DD.js:90 [Supabase Init] Missing credentials from env, fetching from /api/config...
+index-tlEmg5DD.js:90 Failed to fetch Supabase config from backend: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+X0 @ index-tlEmg5DD.js:90
+index-tlEmg5DD.js:90 [Supabase Init] Missing configuration: Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.
+X0 @ index-tlEmg5DD.js:90
