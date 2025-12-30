@@ -203,7 +203,12 @@ const AdminDashboard = () => {
         expiresAt
       });
       
-      const response = await fetch('/api/logins/create-with-auth', {
+      // Use Netlify Function in production, API endpoint in development
+      const endpoint = import.meta.env.PROD 
+        ? '/.netlify/functions/create-login-with-auth'
+        : '/api/logins/create-with-auth';
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
