@@ -163,36 +163,15 @@ export default function Dashboard() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const isAdminLogin = localStorage.getItem('isAdminLogin') === 'true';
-        const userEmail = localStorage.getItem('userEmail');
+        const { getSupabaseClient } = await import("@/lib/supabaseClient");
+        const client = await getSupabaseClient();
+        const { data: { user }, error } = await client.auth.getUser();
         
-        if (isAdminLogin && userEmail) {
-          // Verify admin login still exists
-          const verifyResponse = await fetch('/api/verify-login-exists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail })
-          });
-          
-          if (!verifyResponse.ok) {
-            console.log('Admin login deleted, signing out');
-            setUser(null);
-            localStorage.removeItem('isAdminLogin');
-            localStorage.removeItem('userEmail');
-            return;
-          }
+        if (!user || error) {
+          setUser(null);
+          await client.auth.signOut();
         } else {
-          // Verify Supabase Auth user still exists
-          const { getSupabaseClient } = await import("@/lib/supabaseClient");
-          const client = await getSupabaseClient();
-          const { data: { user }, error } = await client.auth.getUser();
-          
-          if (!user || error) {
-            setUser(null);
-            await client.auth.signOut();
-          } else {
-            setUser(user);
-          }
+          setUser(user);
         }
       } catch (e) {
         console.error("Auth check failed", e);
@@ -210,37 +189,6 @@ export default function Dashboard() {
   const onLogin = async (data: LoginFormValues) => {
     setIsLoggingIn(true);
     try {
-      // First, try to verify login against admin-generated logins table
-      try {
-        const verifyResponse = await fetch('/api/verify-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: data.email, password: data.password })
-        });
-
-        if (verifyResponse.ok) {
-          const result = await verifyResponse.json();
-          // Set a simple user object for admin-generated logins
-          setUser({
-            id: String(result.user.id),
-            email: result.user.email,
-            user_metadata: {
-              clientName: result.user.clientName,
-              plan: result.user.plan
-            }
-          } as any);
-          // Mark this as admin login for future validation
-          localStorage.setItem('isAdminLogin', 'true');
-          localStorage.setItem('userEmail', result.user.email);
-          toast({ title: "Bem-vindo!", description: "Login realizado com sucesso." });
-          return;
-        }
-      } catch (e) {
-        // Fall back to Supabase auth if admin login verification fails
-        console.log("Admin login not found, trying Supabase auth...");
-      }
-
-      // Fall back to Supabase Auth
       const { getSupabaseClient } = await import("@/lib/supabaseClient");
       const client = await getSupabaseClient();
       
@@ -269,8 +217,6 @@ export default function Dashboard() {
       console.error("Logout error", e);
     }
     setUser(null);
-    localStorage.removeItem('isAdminLogin');
-    localStorage.removeItem('userEmail');
     toast({ title: "Até logo!", description: "Log off realizado." });
   };
 

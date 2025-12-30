@@ -100,6 +100,14 @@ shared/           # Shared between client/server
 - **Status**: Not connected (user declined Replit integration setup)
 - **Note**: If needed in the future, can set up via Replit's GitHub connector or provide personal access token as secret
 
+## Authentication Architecture
+
+**Decision (2025-12-30):** Using only Supabase Auth for authentication
+- Removed admin login functionality that depended on Express API endpoints
+- All users now authenticate via Supabase Auth (email/password)
+- This makes the app suitable for frontend-only hosting (Netlify, Vercel)
+- No backend Express server required, can be fully deployed on Supabase + hosting provider
+
 ## Recent Fixes (2025-12-30)
 
 ### Session Validation with Deleted Users
