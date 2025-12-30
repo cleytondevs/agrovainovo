@@ -163,17 +163,36 @@ export default function Dashboard() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        // Use getSupabaseClient to ensure Supabase is initialized
-        const { getSupabaseClient } = await import("@/lib/supabaseClient");
-        const client = await getSupabaseClient();
-        const { data: { user }, error } = await client.auth.getUser();
+        const isAdminLogin = localStorage.getItem('isAdminLogin') === 'true';
+        const userEmail = localStorage.getItem('userEmail');
         
-        // If user doesn't exist or there's an error, user was deleted
-        if (!user || error) {
-          setUser(null);
-          await client.auth.signOut();
+        if (isAdminLogin && userEmail) {
+          // Verify admin login still exists
+          const verifyResponse = await fetch('/api/verify-login-exists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail })
+          });
+          
+          if (!verifyResponse.ok) {
+            console.log('Admin login deleted, signing out');
+            setUser(null);
+            localStorage.removeItem('isAdminLogin');
+            localStorage.removeItem('userEmail');
+            return;
+          }
         } else {
-          setUser(user);
+          // Verify Supabase Auth user still exists
+          const { getSupabaseClient } = await import("@/lib/supabaseClient");
+          const client = await getSupabaseClient();
+          const { data: { user }, error } = await client.auth.getUser();
+          
+          if (!user || error) {
+            setUser(null);
+            await client.auth.signOut();
+          } else {
+            setUser(user);
+          }
         }
       } catch (e) {
         console.error("Auth check failed", e);
@@ -210,6 +229,9 @@ export default function Dashboard() {
               plan: result.user.plan
             }
           } as any);
+          // Mark this as admin login for future validation
+          localStorage.setItem('isAdminLogin', 'true');
+          localStorage.setItem('userEmail', result.user.email);
           toast({ title: "Bem-vindo!", description: "Login realizado com sucesso." });
           return;
         }
@@ -247,6 +269,8 @@ export default function Dashboard() {
       console.error("Logout error", e);
     }
     setUser(null);
+    localStorage.removeItem('isAdminLogin');
+    localStorage.removeItem('userEmail');
     toast({ title: "Até logo!", description: "Log off realizado." });
   };
 

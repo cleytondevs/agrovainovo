@@ -278,6 +278,65 @@ export async function registerRoutes(
     }
   });
 
+  // Check if login still exists (for session validation)
+  app.post('/api/verify-login-exists', async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "Email required" });
+      }
+
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+      
+      if (!supabaseUrl || !supabaseKey) {
+        return res.status(500).json({ error: "Supabase not configured" });
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      const { data: logins, error } = await supabase
+        .from('logins')
+        .select('*')
+        .ilike('email', normalizedEmail)
+        .eq('status', 'active');
+
+      if (error || !logins || logins.length === 0) {
+        return res.status(401).json({ error: "Login not found" });
+      }
+
+      // Check if login has expired
+      const login = logins[0];
+      if (login.expires_at && new Date(login.expires_at) < new Date()) {
+        return res.status(401).json({ error: "Login has expired" });
+      }
+
+      // Also verify user still exists in Supabase Auth
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+      if (serviceRoleKey) {
+        try {
+          const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+          const { data: users, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+          
+          if (!userError && users) {
+            const userExists = users.users.some(u => u.email?.toLowerCase() === normalizedEmail);
+            if (!userExists) {
+              return res.status(401).json({ error: "User deleted" });
+            }
+          }
+        } catch (e) {
+          // Continue if we can't verify in Auth - it's optional
+        }
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[VERIFY-LOGIN-EXISTS] Exception:', error);
+      res.status(500).json({ error: error.message || "Verification failed" });
+    }
+  });
+
   // Verify login credentials against logins table
   app.post('/api/verify-login', async (req, res) => {
     try {

@@ -109,15 +109,19 @@ shared/           # Shared between client/server
 
 1. **useAuth hook** - Validates session on load and when auth state changes. If user doesn't exist, automatically signs out.
 
-2. **Dashboard component** - Added periodic validation every 30 seconds. If user was deleted, clears session and signs out.
+2. **Dashboard component** - Added periodic validation every 30 seconds. Detects if user is admin login or Supabase Auth and validates accordingly:
+   - Admin logins: Checks if login still exists in logins table via `/api/verify-login-exists` endpoint
+   - Supabase Auth: Checks if user still exists in Supabase Auth via `getUser()`
 
 3. **verify-login endpoint** - Added verification that user still exists in Supabase Auth before allowing login. Even if credentials exist in the logins table, login fails if user was deleted from Supabase Auth.
 
+4. **verify-login-exists endpoint** (NEW) - Validates session without requiring password. Used by frontend to periodically verify admin logins are still valid.
+
 **How it works**:
-- When user logs in, we validate that credentials exist in logins table AND user still exists in Supabase Auth
-- If either check fails (user was deleted), login is rejected with "Invalid credentials" error
-- Dashboard checks session validity every 30 seconds to catch deleted users immediately
-- Session is automatically cleared if user is found to be deleted during periodic validation
+- When user logs in via admin, localStorage stores `isAdminLogin=true` and `userEmail`
+- Periodic validation (every 30s) checks appropriate endpoint based on login type
+- If validation fails (user/login deleted or expired), session is cleared and user is signed out
+- On logout, localStorage is cleaned up
 
 ## External Dependencies
 
