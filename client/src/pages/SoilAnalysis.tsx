@@ -90,7 +90,6 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedPdf, setUploadedPdf] = useState<string | null>(null);
-  const [uploadedAttachments, setUploadedAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const form = useForm<SoilAnalysisFormValues>({
@@ -154,42 +153,6 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
     }
   };
 
-  const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    setUploading(true);
-    try {
-      const newAttachments: string[] = [];
-      for (const file of Array.from(files)) {
-        const fileName = `attachment-${Date.now()}-${file.name}`;
-        const { data, error } = await supabase.storage
-          .from('soil-analysis-pdfs')
-          .upload(fileName, file);
-
-        if (error) throw error;
-        newAttachments.push(fileName);
-      }
-
-      setUploadedAttachments([...uploadedAttachments, ...newAttachments]);
-      toast({
-        title: "Arquivo(s) enviado(s)",
-        description: `${Array.from(files).length} arquivo(s) adicionado(s) com sucesso.`,
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro no upload",
-        description: error.message || "Falha ao enviar arquivo.",
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const removeAttachment = (index: number) => {
-    setUploadedAttachments(uploadedAttachments.filter((_, i) => i !== index));
-  };
 
   const onSubmit = async (data: SoilAnalysisFormValues) => {
     setIsSubmitting(true);
@@ -215,7 +178,7 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
           precipitation: data.precipitation ? parseFloat(data.precipitation) : null,
           notes: data.notes || "",
           soil_analysis_pdf: uploadedPdf || "",
-          attachments: uploadedAttachments.join(";"),
+          attachments: "",
           user_email: userEmail,
           status: "pending"
         }]);
@@ -229,7 +192,6 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
 
       form.reset();
       setUploadedPdf(null);
-      setUploadedAttachments([]);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -492,53 +454,6 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
                   </div>
                   {uploadedPdf && (
                     <p className="text-xs text-green-600 mt-2">✓ PDF selecionado</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Upload Arquivos Adicionais */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-blue-700 text-lg flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  Arquivos Adicionais
-                </h3>
-                <div className="space-y-2">
-                  <Label htmlFor="attachments">Upload de Arquivos (Opcional)</Label>
-                  <div className="flex items-center gap-3">
-                    <label htmlFor="attachments" className="flex-1">
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-600 transition">
-                        <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                        <p className="text-sm font-medium text-gray-700">Clique para adicionar arquivos</p>
-                        <p className="text-xs text-gray-500">Qualquer formato (PDF, imagens, documentos)</p>
-                      </div>
-                      <input
-                        id="attachments"
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={handleAttachmentUpload}
-                        disabled={uploading}
-                        data-testid="input-attachments"
-                      />
-                    </label>
-                  </div>
-                  {uploadedAttachments.length > 0 && (
-                    <div className="space-y-2 mt-4">
-                      <Label className="text-sm font-semibold">Arquivos adicionados:</Label>
-                      {uploadedAttachments.map((file, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
-                          <span className="text-sm text-gray-700">{file.split('-').slice(2).join('-')}</span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => removeAttachment(idx)}
-                            data-testid={`button-remove-attachment-${idx}`}
-                          >
-                            ✕
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
                   )}
                 </div>
               </div>
