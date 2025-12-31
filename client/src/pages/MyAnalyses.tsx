@@ -39,6 +39,7 @@ export default function MyAnalyses() {
         .from('soil_analysis')
         .select('*')
         .eq('user_email', user?.email)
+        .neq('status', 'pending')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
