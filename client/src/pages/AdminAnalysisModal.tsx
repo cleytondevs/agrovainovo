@@ -58,7 +58,7 @@ export function AdminAnalysisModal({
 
     const { data: client, error: clientError } = await (async () => {
       try {
-        const c = await supabase;
+        const c = await (supabase as any);
         return { data: c, error: null };
       } catch (e: any) {
         return { data: null, error: e };
@@ -101,7 +101,7 @@ export function AdminAnalysisModal({
 
     const { data: client, error: clientError } = await (async () => {
       try {
-        const c = await supabase;
+        const c = await (supabase as any);
         return { data: c, error: null };
       } catch (e: any) {
         return { data: null, error: e };
