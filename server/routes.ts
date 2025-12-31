@@ -336,7 +336,34 @@ export async function registerRoutes(
         return res.status(400).json({ valid: false, error: "Code is required" });
       }
 
-      const invite = await storage.getInviteByCode(code);
+      // Try memory storage first
+      let invite = await storage.getInviteByCode(code);
+
+      // If not in memory, try Supabase
+      if (!invite) {
+        const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+        const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+
+        if (supabaseUrl && supabaseKey) {
+          const supabase = createClient(supabaseUrl, supabaseKey);
+          const { data, error } = await supabase
+            .from('invite_links')
+            .select('*')
+            .eq('code', code)
+            .maybeSingle();
+
+          if (data && !error) {
+            invite = {
+              id: data.id,
+              code: data.code,
+              email: data.email,
+              usedAt: data.used_at ? new Date(data.used_at) : null,
+              expiresAt: data.expires_at ? new Date(data.expires_at) : null,
+              createdAt: new Date(data.created_at)
+            };
+          }
+        }
+      }
 
       if (!invite) {
         return res.status(200).json({ valid: false, error: "Invite not found" });
