@@ -141,7 +141,7 @@ const AdminDashboard = () => {
 
   const submitAnalysisMutation = useMutation({
     mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
-      const response = await apiRequest(`/api/soil-analysis/${data.id}/review`, {
+      const response = await fetch(`/api/soil-analysis/${data.id}/review`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
