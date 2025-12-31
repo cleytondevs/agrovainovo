@@ -63,16 +63,10 @@ const soilAnalysisSchema = z.object({
   cropAge: z.string().min(1, "Idade da cultura é obrigatória"),
   productionType: z.string().min(1, "Tipo de lavoura é obrigatório"),
   spacing: z.string().optional(),
-  area: z.string().min(1, "Área/hectare é obrigatória"),
+  area: z.string().min(1, "Área/hectare é obrigatária"),
   sampleDepth: z.string().min(1, "Profundidade da amostra é obrigatória"),
   collectedBy: z.string().min(1, "Informação sobre coleta é obrigatória"),
   fieldName: z.string().min(1, "Nome do campo é obrigatório"),
-  pH: z.string().refine((val) => !val || (parseFloat(val) >= 0 && parseFloat(val) <= 14), "pH deve estar entre 0 e 14"),
-  nitrogen: z.string().refine((val) => !val || parseFloat(val) >= 0, "Nitrogênio deve ser positivo"),
-  phosphorus: z.string().refine((val) => !val || parseFloat(val) >= 0, "Fósforo deve ser positivo"),
-  potassium: z.string().refine((val) => !val || parseFloat(val) >= 0, "Potássio deve ser positivo"),
-  moisture: z.string().refine((val) => !val || parseFloat(val) >= 0, "Umidade deve ser positiva"),
-  organicMatter: z.string().refine((val) => !val || parseFloat(val) >= 0, "Matéria orgânica deve ser positiva"),
   notes: z.string().optional(),
 });
 
@@ -103,12 +97,6 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
       sampleDepth: "",
       collectedBy: "",
       fieldName: "",
-      pH: "",
-      nitrogen: "",
-      phosphorus: "",
-      potassium: "",
-      moisture: "",
-      organicMatter: "",
       notes: "",
     },
   });
@@ -167,12 +155,6 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
           area: data.area,
           sample_depth: data.sampleDepth,
           collected_by: data.collectedBy,
-          pH: data.pH || null,
-          nitrogen: data.nitrogen || null,
-          phosphorus: data.phosphorus || null,
-          potassium: data.potassium || null,
-          moisture: data.moisture || null,
-          organic_matter: data.organicMatter || null,
           notes: data.notes || "",
           soil_analysis_pdf: uploadedFile || "",
           user_email: userEmail,
@@ -449,102 +431,6 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
                         data-testid="input-pdfFile"
                       />
                     </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Análise de Solo - Dados */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-green-700 text-lg flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  Parâmetros de Análise
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="pH" className="font-semibold">pH do Solo</Label>
-                    <Input
-                      id="pH"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="14"
-                      placeholder="Ex: 6.5"
-                      data-testid="input-pH"
-                      {...form.register("pH")}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-green-600 text-sm flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
-                    Macronutrientes (mg/dm³)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nitrogen">Nitrogênio (N)</Label>
-                      <Input
-                        id="nitrogen"
-                        type="number"
-                        step="0.01"
-                        placeholder="mg/dm³"
-                        data-testid="input-nitrogen"
-                        {...form.register("nitrogen")}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phosphorus">Fósforo (P)</Label>
-                      <Input
-                        id="phosphorus"
-                        type="number"
-                        step="0.01"
-                        placeholder="mg/dm³"
-                        data-testid="input-phosphorus"
-                        {...form.register("phosphorus")}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="potassium">Potássio (K)</Label>
-                      <Input
-                        id="potassium"
-                        type="number"
-                        step="0.01"
-                        placeholder="mg/dm³"
-                        data-testid="input-potassium"
-                        {...form.register("potassium")}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-amber-600 text-sm flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
-                    Propriedades Físico-Químicas
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="moisture">Umidade (%)</Label>
-                      <Input
-                        id="moisture"
-                        type="number"
-                        step="0.1"
-                        placeholder="0-100%"
-                        data-testid="input-moisture"
-                        {...form.register("moisture")}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="organicMatter">Matéria Orgânica (%)</Label>
-                      <Input
-                        id="organicMatter"
-                        type="number"
-                        step="0.1"
-                        placeholder="0-100%"
-                        data-testid="input-organicMatter"
-                        {...form.register("organicMatter")}
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
