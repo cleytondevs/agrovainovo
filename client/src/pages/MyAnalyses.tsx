@@ -32,7 +32,7 @@ export default function MyAnalyses() {
     checkUser();
   }, [setLocation]);
 
-  const { data: analyses = [], isLoading } = useQuery<SoilAnalysis[]>({
+  const { data: analyses = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/soil-analysis/user", user?.email],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -54,7 +54,7 @@ export default function MyAnalyses() {
         adminFileUrls: a.admin_file_urls,
         updatedAt: a.updated_at,
         createdAt: a.created_at
-      }));
+      })) as any[];
     },
     enabled: !!user?.email,
     staleTime: 1000 * 60 * 5,

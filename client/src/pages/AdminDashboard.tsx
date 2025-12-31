@@ -99,7 +99,7 @@ const AdminDashboard = () => {
     setLocation("/dashboard");
   };
 
-  const { data: analyses = [], isLoading } = useQuery<SoilAnalysis[]>({
+  const { data: analyses = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/soil-analysis/all"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -128,7 +128,7 @@ const AdminDashboard = () => {
         adminFileUrls: a.admin_file_urls,
         updatedAt: a.updated_at,
         createdAt: a.created_at
-      })) as SoilAnalysis[];
+      }));
     },
     enabled: isAuthenticated,
   });
@@ -177,6 +177,7 @@ const AdminDashboard = () => {
 
   const submitAnalysisMutation = useMutation({
     mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
+      // Usando query direta via RPC ou transformando para snake_case
       const { error } = await supabase.from('soil_analysis').update({
         status: data.status,
         admin_comments: data.adminComments,
@@ -191,7 +192,7 @@ const AdminDashboard = () => {
       setModalOpen(false);
     },
     onError: () => {
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao salvar análise" });
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao salvar análise. Verifique os campos no banco de dados." });
     },
   });
 
@@ -528,10 +529,10 @@ const AdminDashboard = () => {
                       <tr key={analysis.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.userEmail}</td>
                         <td className="px-4 py-3 font-medium" data-testid={`text-producer-${analysis.id}`}>
-                          {(analysis as any).producerName || "-"}
+                          {((analysis as any).producerName || "-")}
                         </td>
                         <td className="px-4 py-3 font-medium" data-testid={`text-property-${analysis.id}`}>
-                          {(analysis as any).propertyName || "-"}
+                          {((analysis as any).propertyName || "-")}
                         </td>
                         <td className="px-4 py-3">{analysis.cropType}</td>
                         <td className="px-4 py-3">

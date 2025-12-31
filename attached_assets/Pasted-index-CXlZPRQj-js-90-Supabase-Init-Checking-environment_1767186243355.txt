@@ -1,0 +1,39 @@
+index-CXlZPRQj.js:90 [Supabase Init] Checking environment variables: Object
+index-CXlZPRQj.js:90 [Supabase Init] Successfully obtained credentials, creating client
+index-CXlZPRQj.js:90 Supabase initialized successfully
+tab.js:1 Refused to execute inline script because it violates the following Content Security Policy directive: "script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' chrome-extension://75dee662-bdbf-489d-87e5-ac9540241382/". Either the 'unsafe-inline' keyword, a hash ('sha256-kPx0AsF0oz2kKiZ875xSvv693TBHkQ/0SkMJZnnNpnQ='), or a nonce ('nonce-...') is required to enable inline execution.
+
+(anonymous) @ tab.js:1
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+wragrotech.netlify.app/:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZCZ24?modules=price' from origin 'https://wragrotech.netlify.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZCZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+index-CXlZPRQj.js:98 Failed to fetch ZCZ24 TypeError: Failed to fetch
+    at V (index-CXlZPRQj.js:98:47850)
+V @ index-CXlZPRQj.js:98
+wragrotech.netlify.app/:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZSZ24?modules=price' from origin 'https://wragrotech.netlify.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZSZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+index-CXlZPRQj.js:98 Failed to fetch ZSZ24 TypeError: Failed to fetch
+    at V (index-CXlZPRQj.js:98:47850)
+V @ index-CXlZPRQj.js:98
+wragrotech.netlify.app/:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZMZ24?modules=price' from origin 'https://wragrotech.netlify.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZMZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+index-CXlZPRQj.js:98 Failed to fetch ZMZ24 TypeError: Failed to fetch
+    at V (index-CXlZPRQj.js:98:47850)
+V @ index-CXlZPRQj.js:98
+wragrotech.netlify.app/:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/KCZ24?modules=price' from origin 'https://wragrotech.netlify.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/KCZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+index-CXlZPRQj.js:98 Failed to fetch KCZ24 TypeError: Failed to fetch
+    at V (index-CXlZPRQj.js:98:47850)
+V @ index-CXlZPRQj.js:98
+index-CXlZPRQj.js:98 Commodity prices fetch failed Error: Could not fetch commodity prices
+    at V (index-CXlZPRQj.js:98:48745)
+V @ index-CXlZPRQj.js:98
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/users?select=*:1  Failed to load resource: the server responded with a status of 404 ()
+index-CXlZPRQj.js:94 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ index-CXlZPRQj.js:94
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?id=eq.5:1  Failed to load resource: the server responded with a status of 400 ()
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?id=eq.5:1  Failed to load resource: the server responded with a status of 400 ()
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?id=eq.5:1  Failed to load resource: the server responded with a status of 400 ()
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?id=eq.5:1  Failed to load resource: the server responded with a status of 400 ()
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?id=eq.5:1  Failed to load resource: the server responded with a status of 400 ()
