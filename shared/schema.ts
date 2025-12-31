@@ -1,4 +1,4 @@
-import { pgTable, text, serial, boolean, timestamp, integer, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, timestamp, integer, decimal, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -10,6 +10,12 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   username: text("username"),
+  fullName: text("full_name"),
+  address: text("address"),
+  occupation: text("occupation"),
+  education: text("education"),
+  birthDate: date("birth_date"),
+  phone: text("phone"),
   hasAccessed: boolean("has_accessed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -21,6 +27,24 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+// Invite links table - for sending signup invitations
+export const inviteLinks = pgTable("invite_links", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  email: text("email").notNull(),
+  usedAt: timestamp("used_at"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertInviteLinkSchema = createInsertSchema(inviteLinks).omit({ 
+  id: true, 
+  createdAt: true 
+});
+
+export type InviteLink = typeof inviteLinks.$inferSelect;
+export type InsertInviteLink = z.infer<typeof insertInviteLinkSchema>;
 
 // Access links table - tracks setup links with usage limits
 export const accessLinks = pgTable("access_links", {

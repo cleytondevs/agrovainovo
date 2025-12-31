@@ -326,6 +326,117 @@ export async function registerRoutes(
     }
   });
 
+  // Validate invite link
+  app.get('/api/validate-invite', async (req, res) => {
+    try {
+      const { code } = req.query;
+
+      if (!code || typeof code !== "string") {
+        return res.status(400).json({ valid: false, error: "Code is required" });
+      }
+
+      const invite = await storage.getInviteByCode(code);
+
+      if (!invite) {
+        return res.status(200).json({ valid: false, error: "Invite not found" });
+      }
+
+      // Check if already used
+      if (invite.usedAt) {
+        return res.status(200).json({ valid: false, error: "Invite already used" });
+      }
+
+      // Check if expired
+      if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+        return res.status(200).json({ valid: false, error: "Invite expired" });
+      }
+
+      return res.status(200).json({ valid: true, email: invite.email });
+    } catch (error) {
+      console.error("Error validating invite:", error);
+      res.status(500).json({ valid: false, error: "Internal server error" });
+    }
+  });
+
+  // Save user profile after signup
+  app.post('/api/save-user-profile', async (req, res) => {
+    try {
+      const { email, fullName, phone, address, occupation, education, birthDate, inviteCode } = req.body;
+
+      // Validate required fields
+      if (!email || !fullName || !phone || !address || !occupation || !education || !birthDate) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Save user to database
+      const user = await storage.createUser({
+        email,
+        fullName,
+        phone,
+        address,
+        occupation,
+        education,
+        birthDate,
+      });
+
+      // Mark invite as used
+      if (inviteCode) {
+        await storage.markInviteAsUsed(inviteCode);
+      }
+
+      res.status(201).json({ success: true, user });
+    } catch (error) {
+      console.error("Error saving user profile:", error);
+      res.status(500).json({ error: "Failed to save user profile" });
+    }
+  });
+
+  // Create new invite link (admin endpoint)
+  app.post('/api/create-invite', async (req, res) => {
+    try {
+      const { email, expiresIn } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Generate unique code
+      const code = require('crypto').randomBytes(16).toString("hex");
+
+      // Set expiration (default 7 days)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + (expiresIn || 7));
+
+      const invite = await storage.createInviteLink({
+        code,
+        email,
+        expiresAt,
+      });
+
+      const inviteUrl = `${process.env.VITE_APP_URL || 'http://localhost:5000'}/signup?code=${code}`;
+
+      res.status(201).json({ 
+        success: true, 
+        invite,
+        inviteUrl,
+      });
+    } catch (error) {
+      console.error("Error creating invite:", error);
+      res.status(500).json({ error: "Failed to create invite" });
+    }
+  });
+
+  // Get all invites (admin endpoint)
+  app.get('/api/invites', async (req, res) => {
+    try {
+      const invites = await storage.getAllInvites();
+      res.status(200).json(invites);
+    } catch (error) {
+      console.error("Error fetching invites:", error);
+      res.status(500).json({ error: "Failed to fetch invites" });
+    }
+  });
+
   // Check if login still exists (for session validation)
   app.post('/api/verify-login-exists', async (req, res) => {
     try {

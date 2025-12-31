@@ -7,14 +7,13 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import MyAnalyses from "@/pages/MyAnalyses";
+import SignUp from "@/pages/SignUp";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/signup">
-        <Redirect to="/" />
-      </Route>
+      <Route path="/signup" component={SignUp} />
       <Route path="/setup">
         <Redirect to="/" />
       </Route>

@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type SoilAnalysis, type InsertSoilAnalysis, type Login, type InsertLogin } from "@shared/schema";
+import { type User, type InsertUser, type SoilAnalysis, type InsertSoilAnalysis, type Login, type InsertLogin, type InviteLink, type InsertInviteLink } from "@shared/schema";
 import * as dbClient from "./db-client";
 
 export interface IStorage {
@@ -15,23 +15,32 @@ export interface IStorage {
   createLogin(login: InsertLogin): Promise<Login>;
   getAllLogins(): Promise<Login[]>;
   deleteLogin(id: number): Promise<void>;
+  createInviteLink(invite: InsertInviteLink): Promise<InviteLink>;
+  getInviteByCode(code: string): Promise<InviteLink | undefined>;
+  markInviteAsUsed(code: string): Promise<void>;
+  getAllInvites(): Promise<InviteLink[]>;
+  loginExists(email: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private soilAnalyses: Map<number, SoilAnalysis>;
   private logins: Map<number, Login>;
+  private invites: Map<number, InviteLink>;
   private currentId: number;
   private currentAnalysisId: number;
   private currentLoginId: number;
+  private currentInviteId: number;
 
   constructor() {
     this.users = new Map();
     this.soilAnalyses = new Map();
     this.logins = new Map();
+    this.invites = new Map();
     this.currentId = 1;
     this.currentAnalysisId = 1;
     this.currentLoginId = 1;
+    this.currentInviteId = 1;
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -161,6 +170,34 @@ export class MemStorage implements IStorage {
       console.warn("Failed to delete analysis from database, using memory storage", error);
       this.soilAnalyses.delete(id);
     }
+  }
+
+  async createInviteLink(invite: InsertInviteLink): Promise<InviteLink> {
+    const id = this.currentInviteId++;
+    // @ts-ignore
+    const newInvite: InviteLink = { ...invite, id, createdAt: new Date() };
+    this.invites.set(id, newInvite);
+    return newInvite;
+  }
+
+  async getInviteByCode(code: string): Promise<InviteLink | undefined> {
+    return Array.from(this.invites.values()).find(i => i.code === code);
+  }
+
+  async markInviteAsUsed(code: string): Promise<void> {
+    const invite = Array.from(this.invites.values()).find(i => i.code === code);
+    if (invite) {
+      invite.usedAt = new Date();
+    }
+  }
+
+  async getAllInvites(): Promise<InviteLink[]> {
+    return Array.from(this.invites.values());
+  }
+
+  async loginExists(email: string): Promise<boolean> {
+    const login = Array.from(this.logins.values()).find(l => l.email?.toLowerCase() === email.toLowerCase());
+    return !!login;
   }
 }
 
