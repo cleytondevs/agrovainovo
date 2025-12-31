@@ -134,7 +134,7 @@ export default function SignUp() {
 
       toast({
         title: "Conta criada com sucesso!",
-        description: "Verifique seu e-mail para confirmar sua conta.",
+        description: "Você já pode acessar o sistema.",
       });
 
       setTimeout(() => {
