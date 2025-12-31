@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, FileUp } from "lucide-react";
+import { Loader2, FileUp, Download, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabaseClient";
 import type { SoilAnalysis } from "@shared/schema";
 
 interface AdminAnalysisModalProps {
@@ -34,6 +35,38 @@ export function AdminAnalysisModal({
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!analysis?.soil_analysis_pdf) {
+      toast({ variant: "destructive", title: "Erro", description: "Nenhum PDF disponível" });
+      return;
+    }
+
+    setDownloadingPdf(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from('soil-analysis-pdfs')
+        .download(analysis.soil_analysis_pdf);
+      
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `analise-solo-${analysis.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({ title: "PDF baixado", description: "Arquivo salvo com sucesso" });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao baixar PDF" });
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -41,20 +74,19 @@ export function AdminAnalysisModal({
 
     setUploadingFile(true);
     try {
-      // Create file URLs using a simple base64 approach for demo
-      // In production, use Supabase Storage
       const newUrls: string[] = [];
       for (const file of Array.from(files)) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          newUrls.push(file.name);
-        };
-        reader.readAsArrayBuffer(file);
+        const fileName = `report-${Date.now()}-${file.name}`;
+        const { data, error } = await supabase.storage
+          .from('soil-analysis-pdfs')
+          .upload(fileName, file);
+
+        if (error) throw error;
+        newUrls.push(fileName);
       }
       
-      // For now, just store file names
-      setFileUrls([...fileUrls, ...Array.from(files).map(f => f.name)]);
-      toast({ title: "Arquivo adicionado", description: `${Array.from(files).length} arquivo(s) selecionado(s)` });
+      setFileUrls([...fileUrls, ...newUrls]);
+      toast({ title: "Arquivo adicionado", description: `${Array.from(files).length} arquivo(s) adicionado(s)` });
     } catch (error) {
       toast({ variant: "destructive", title: "Erro", description: "Falha ao processar arquivo" });
     } finally {
@@ -98,45 +130,113 @@ export function AdminAnalysisModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Analysis Data */}
+          {/* Producer Data */}
           <Card>
             <CardContent className="pt-6">
+              <h3 className="font-semibold text-green-700 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                Dados do Produtor
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-slate-500">Email</Label>
-                  <p className="font-medium">{analysis.userEmail}</p>
+                  <Label className="text-xs text-slate-500">Nome</Label>
+                  <p className="font-medium">{analysis.producer_name || "-"}</p>
                 </div>
+                <div>
+                  <Label className="text-xs text-slate-500">Contato</Label>
+                  <p className="font-medium">{analysis.producer_contact || "-"}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-xs text-slate-500">Endereço</Label>
+                  <p className="font-medium">{analysis.producer_address || "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-500">Propriedade</Label>
+                  <p className="font-medium">{analysis.property_name || "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-500">Cidade</Label>
+                  <p className="font-medium">{analysis.city || "-"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Collection Data */}
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="font-semibold text-blue-700 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                Informações de Coleta
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-xs text-slate-500">Cultura</Label>
                   <p className="font-medium">{analysis.cropType}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-500">pH</Label>
-                  <p className="font-medium">{analysis.pH}</p>
+                  <Label className="text-xs text-slate-500">Idade</Label>
+                  <p className="font-medium">{analysis.crop_age || "-"}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-500">Nitrogênio</Label>
-                  <p className="font-medium">{analysis.nitrogen} ppm</p>
+                  <Label className="text-xs text-slate-500">Tipo de Lavoura</Label>
+                  <p className="font-medium">{analysis.production_type || "-"}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-500">Fósforo</Label>
-                  <p className="font-medium">{analysis.phosphorus} ppm</p>
+                  <Label className="text-xs text-slate-500">Espaçamento</Label>
+                  <p className="font-medium">{analysis.spacing || "-"}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-500">Potássio</Label>
-                  <p className="font-medium">{analysis.potassium} ppm</p>
+                  <Label className="text-xs text-slate-500">Área/Hectare</Label>
+                  <p className="font-medium">{analysis.area || "-"}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-500">Umidade</Label>
-                  <p className="font-medium">{analysis.moisture}%</p>
+                  <Label className="text-xs text-slate-500">Profundidade da Amostra</Label>
+                  <p className="font-medium">{analysis.sample_depth || "-"}</p>
                 </div>
-                <div>
-                  <Label className="text-xs text-slate-500">Matéria Orgânica</Label>
-                  <p className="font-medium">{analysis.organicMatter}%</p>
+                <div className="col-span-2">
+                  <Label className="text-xs text-slate-500">Coleta Realizada Por</Label>
+                  <p className="font-medium">{analysis.collected_by || "-"}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* PDF Download */}
+          {analysis.soil_analysis_pdf && (
+            <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-xs text-slate-500">PDF da Análise Enviado</Label>
+                    <p className="font-medium text-green-700 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      Arquivo disponível
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleDownloadPdf}
+                    disabled={downloadingPdf}
+                    className="border-purple-300 hover:bg-purple-100"
+                    data-testid="button-download-pdf"
+                  >
+                    {downloadingPdf ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Baixando...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar PDF
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Status Selection */}
           <div>

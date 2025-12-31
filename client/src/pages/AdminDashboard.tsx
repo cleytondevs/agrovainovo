@@ -114,7 +114,15 @@ const AdminDashboard = () => {
         fieldName: a.field_name,
         cropType: a.crop_type,
         userEmail: a.user_email,
-        organicMatter: a.organic_matter,
+        producerName: a.producer_name,
+        producerContact: a.producer_contact,
+        producerAddress: a.producer_address,
+        propertyName: a.property_name,
+        cropAge: a.crop_age,
+        productionType: a.production_type,
+        sampleDepth: a.sample_depth,
+        collectedBy: a.collected_by,
+        soilAnalysisPdf: a.soil_analysis_pdf,
         adminComments: a.admin_comments,
         adminFileUrls: a.admin_file_urls,
         updatedAt: a.updated_at,
@@ -492,9 +500,9 @@ const AdminDashboard = () => {
                   <thead className="border-b bg-slate-50 dark:bg-slate-800">
                     <tr>
                       <th className="px-4 py-3 text-left font-semibold">Email</th>
-                      <th className="px-4 py-3 text-left font-semibold">Campo</th>
+                      <th className="px-4 py-3 text-left font-semibold">Produtor</th>
+                      <th className="px-4 py-3 text-left font-semibold">Propriedade</th>
                       <th className="px-4 py-3 text-left font-semibold">Cultura</th>
-                      <th className="px-4 py-3 text-left font-semibold">pH</th>
                       <th className="px-4 py-3 text-left font-semibold">Status</th>
                       <th className="px-4 py-3 text-left font-semibold">Ações</th>
                     </tr>
@@ -503,11 +511,13 @@ const AdminDashboard = () => {
                     {filteredAnalyses.map((analysis) => (
                       <tr key={analysis.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.userEmail}</td>
-                        <td className="px-4 py-3 font-medium" data-testid={`text-field-${analysis.id}`}>
-                          {analysis.fieldName}
+                        <td className="px-4 py-3 font-medium" data-testid={`text-producer-${analysis.id}`}>
+                          {analysis.producerName || "-"}
+                        </td>
+                        <td className="px-4 py-3 font-medium" data-testid={`text-property-${analysis.id}`}>
+                          {analysis.propertyName || "-"}
                         </td>
                         <td className="px-4 py-3">{analysis.cropType}</td>
-                        <td className="px-4 py-3 font-mono">{analysis.pH}</td>
                         <td className="px-4 py-3">
                           <Badge className={statusConfig[analysis.status as keyof typeof statusConfig]?.color}>
                             {statusConfig[analysis.status as keyof typeof statusConfig]?.label}
