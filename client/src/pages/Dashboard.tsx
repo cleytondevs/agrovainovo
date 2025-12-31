@@ -584,17 +584,13 @@ export default function Dashboard() {
                 <Beaker className="h-4 w-4 mr-1" />
                 Minhas Análises
               </Button>
-              <AnimatePresence>
-                {analysesCount > 0 && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm"
-                  >
-                    {analysesCount}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {analysesCount > 0 && (
+                <div
+                  className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm pointer-events-none"
+                >
+                  {analysesCount}
+                </div>
+              )}
             </div>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-red-600">
               <LogOut className="h-4 w-4 mr-1" />
