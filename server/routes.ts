@@ -516,37 +516,47 @@ export async function registerRoutes(
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + (expiresIn || 7));
 
-      // Try to save to Supabase first, fallback to memory storage
       const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-      const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-      let invite = null;
-
-      if (supabaseUrl && supabaseKey) {
-        try {
-          const supabase = createClient(supabaseUrl, supabaseKey);
-          const { data, error } = await supabase
-            .from('invite_links')
-            .insert({
-              code,
-              email: email.trim().toLowerCase(),
-              expires_at: expiresAt.toISOString()
-            })
-            .select();
-
-          if (error) {
-            console.warn('Failed to save invite to Supabase:', error);
-            // Fallback to memory storage
-            invite = await storage.createInviteLink({ code, email, expiresAt });
-          } else {
-            invite = data?.[0];
-          }
-        } catch (supabaseError) {
-          console.warn('Supabase error, falling back to memory:', supabaseError);
-          invite = await storage.createInviteLink({ code, email, expiresAt });
+      if (!supabaseUrl || !serviceRoleKey) {
+        console.warn('Supabase service role config missing for invite creation');
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+        if (!supabaseUrl || !supabaseAnonKey) {
+          return res.status(500).json({ error: "Supabase not configured" });
         }
+        
+        const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
+        const supabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+        const { data, error } = await supabaseClient
+          .from('invite_links')
+          .insert({
+            code,
+            email: email.trim().toLowerCase(),
+            expires_at: expiresAt.toISOString()
+          })
+          .select();
+          
+        if (error) throw error;
+        invite = data?.[0];
       } else {
-        invite = await storage.createInviteLink({ code, email, expiresAt });
+        const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
+        const supabaseAdmin = createSupabaseClient(supabaseUrl, serviceRoleKey);
+        const { data, error } = await supabaseAdmin
+          .from('invite_links')
+          .insert({
+            code,
+            email: email.trim().toLowerCase(),
+            expires_at: expiresAt.toISOString()
+          })
+          .select();
+
+        if (error) {
+          console.warn('Failed to save invite with service role, falling back to storage:', error);
+          invite = await storage.createInviteLink({ code, email, expiresAt });
+        } else {
+          invite = data?.[0];
+        }
       }
 
       const inviteUrl = `${process.env.VITE_APP_URL || req.get('origin') || 'http://localhost:5000'}/signup?code=${code}`;

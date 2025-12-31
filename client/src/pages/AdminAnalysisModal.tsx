@@ -306,7 +306,7 @@ export function AdminAnalysisModal({
               <CardContent className="pt-6">
                 <h4 className="font-semibold text-blue-700 mb-3">Arquivos Adicionais do Produtor</h4>
                 <div className="space-y-2">
-                  {analysis.attachments.split(";").filter(f => f).map((file, idx) => (
+                  {analysis.attachments.split(";").filter((f: string) => f).map((file: string, idx: number) => (
                     <div key={idx} className="flex items-center justify-between bg-white dark:bg-slate-800 p-2 rounded border border-blue-100">
                       <span className="text-sm truncate">{file.split('-').slice(2).join('-')}</span>
                       <Button
