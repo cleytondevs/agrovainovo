@@ -177,22 +177,32 @@ const AdminDashboard = () => {
 
   const submitAnalysisMutation = useMutation({
     mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
-      // Usando query direta via RPC ou transformando para snake_case
+      console.log('[AdminDashboard] Saving analysis review:', data);
       const { error } = await supabase.from('soil_analysis').update({
         status: data.status,
         admin_comments: data.adminComments,
         admin_file_urls: data.adminFileUrls,
         updated_at: new Date().toISOString()
       } as any).eq('id', data.id);
-      if (error) throw error;
+      
+      if (error) {
+        console.error('[AdminDashboard] Error saving analysis:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      // Invalidar cache do admin e do cliente
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
-      toast({ title: "Análise salva com sucesso e enviada ao cliente" });
+      queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/user"] });
+      toast({ title: "Análise atualizada com sucesso", description: "O cliente já pode visualizar as alterações." });
       setModalOpen(false);
     },
-    onError: () => {
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao salvar análise. Verifique os campos no banco de dados." });
+    onError: (error: any) => {
+      toast({ 
+        variant: "destructive", 
+        title: "Erro ao salvar", 
+        description: error.message || "Falha ao sincronizar com o banco de dados." 
+      });
     },
   });
 
