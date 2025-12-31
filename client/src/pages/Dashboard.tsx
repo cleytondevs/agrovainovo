@@ -30,7 +30,8 @@ import {
   ExternalLink,
   Droplet,
   Wheat,
-  Download
+  Download,
+  FileText
 } from "lucide-react";
 import SoilAnalysis from "./SoilAnalysis";
 import SoilMaterials from "./SoilMaterials";
@@ -42,6 +43,8 @@ import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -341,6 +344,19 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  const { data: analysesCount = 0 } = useQuery({
+    queryKey: ["/api/soil-analysis/count", user?.email],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('soil_analysis')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_email', user?.email);
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user?.email,
+  });
+
   const onLogin = async (data: LoginFormValues) => {
     setIsLoggingIn(true);
     try {
@@ -563,10 +579,23 @@ export default function Dashboard() {
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
               {user.email?.[0].toUpperCase()}
             </div>
-            <Button variant="ghost" size="sm" onClick={goToMyAnalyses} className="text-muted-foreground hover:text-blue-600" data-testid="button-my-analyses">
-              <Beaker className="h-4 w-4 mr-1" />
-              Minhas Análises
-            </Button>
+            <div className="relative">
+              <Button variant="ghost" size="sm" onClick={goToMyAnalyses} className="text-muted-foreground hover:text-blue-600" data-testid="button-my-analyses">
+                <Beaker className="h-4 w-4 mr-1" />
+                Minhas Análises
+              </Button>
+              <AnimatePresence>
+                {analysesCount > 0 && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm"
+                  >
+                    {analysesCount}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-red-600">
               <LogOut className="h-4 w-4 mr-1" />
               Sair

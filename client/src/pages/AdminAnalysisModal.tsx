@@ -41,6 +41,15 @@ export function AdminAnalysisModal({
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Initialize form with analysis data
+  useState(() => {
+    if (analysis) {
+      setStatus(analysis.status || "pending");
+      setComments(analysis.adminComments || "");
+      setFileUrls(Array.isArray(analysis.adminFileUrls) ? analysis.adminFileUrls : []);
+    }
+  });
+
   const handleDownloadPdf = async () => {
     if (!analysis?.soil_analysis_pdf) {
       toast({ variant: "destructive", title: "Erro", description: "Nenhum PDF disponível" });

@@ -128,7 +128,7 @@ const AdminDashboard = () => {
         adminFileUrls: a.admin_file_urls,
         updatedAt: a.updated_at,
         createdAt: a.created_at
-      }));
+      })) as any[];
     },
     enabled: isAuthenticated,
   });
