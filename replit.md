@@ -109,6 +109,36 @@ shared/           # Shared between client/server
 - This makes the app suitable for frontend-only hosting (Netlify, Vercel)
 - No backend Express server required, can be fully deployed on Supabase + hosting provider
 
+## Soil Analysis Workflow (2025-12-31)
+
+**Feature Implemented:** Complete analysis review and delivery flow
+
+### How It Works:
+1. **Client submits analysis** - Via Dashboard > "Análise de Solo" tab
+2. **Admin reviews** - Via `/admin` panel, sees all pending analyses
+3. **Admin provides feedback** - Adds:
+   - Status (Pending/Approved/Rejected)
+   - Admin comments explaining the analysis
+   - Result files (PDFs, reports, etc.)
+4. **Client receives results** - Analysis appears in "Minhas Análises" page
+   - Shows status badge
+   - Displays admin comments
+   - Provides download links for all result files
+
+### Technical Details:
+- **Data Flow**: Client → Soil Analysis Table → Admin Review → Same record updated
+- **Storage**: Files stored in Supabase Storage bucket (`soil-analysis-pdfs`)
+- **Access**: Clients only see their own analyses via email filter
+- **Download**: Secure download using Supabase Storage API
+
+### UI Components:
+- **Dashboard**: "Minhas Análises" button in header (line 566)
+- **MyAnalyses Page**: `/my-analyses` route shows all analyses with:
+  - Status with color-coded badge
+  - Admin comments section (if any)
+  - Download buttons for result files
+  - Back to Dashboard button
+
 ## Recent Fixes (2025-12-30)
 
 ### Session Validation with Deleted Users

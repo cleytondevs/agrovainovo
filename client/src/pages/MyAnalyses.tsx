@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LogOut, FileText, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { LogOut, FileText, Clock, CheckCircle2, XCircle, Loader2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabaseClient";
 import type { SoilAnalysis } from "@shared/schema";
 
 export default function MyAnalyses() {
@@ -66,27 +67,41 @@ export default function MyAnalyses() {
     toast({ title: "Desconectado com sucesso" });
   };
 
-  const handleDownloadFile = (fileUrl: string) => {
+  const handleDownloadFile = async (fileName: string) => {
     try {
-      // Create a link and trigger download
+      toast({ 
+        title: "Preparando download...", 
+        description: "Gerando link de acesso..." 
+      });
+
+      const { data, error } = await supabase.storage
+        .from('soil-analysis-pdfs')
+        .download(fileName);
+
+      if (error) {
+        console.error('Download error:', error);
+        throw error;
+      }
+
+      const url = URL.createObjectURL(data);
       const link = document.createElement("a");
-      link.href = fileUrl;
-      link.setAttribute("download", fileUrl.split("/").pop() || "analise.pdf");
-      link.target = "_blank"; // Open in new tab if it can't be downloaded directly
+      link.href = url;
+      link.setAttribute("download", fileName.split("/").pop() || "analise.pdf");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+      URL.revokeObjectURL(url);
+
       toast({ 
-        title: "Download iniciado", 
-        description: "O download do seu relatório começou." 
+        title: "Download completo", 
+        description: "Arquivo salvo com sucesso." 
       });
     } catch (error) {
       console.error("Erro ao baixar arquivo:", error);
       toast({ 
         variant: "destructive",
         title: "Erro no download", 
-        description: "Não foi possível baixar o arquivo no momento." 
+        description: "Não foi possível baixar o arquivo. Tente novamente." 
       });
     }
   };
@@ -116,10 +131,15 @@ export default function MyAnalyses() {
             <h1 className="text-2xl font-bold text-slate-900">Minhas Análises</h1>
             <p className="text-sm text-slate-600">{user?.email}</p>
           </div>
-          <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setLocation("/dashboard")} data-testid="button-back-dashboard">
+              Voltar ao Dashboard
+            </Button>
+            <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -221,12 +241,12 @@ export default function MyAnalyses() {
                               <Button
                                 key={idx}
                                 variant="outline"
-                                className="w-full justify-start text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
+                                className="w-full justify-start text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900"
                                 onClick={() => handleDownloadFile(file.trim())}
                                 data-testid={`button-download-file-${idx}`}
                               >
-                                <FileText className="w-4 h-4 mr-2" />
-                                {file.trim()}
+                                <Download className="w-4 h-4 mr-2" />
+                                {file.trim().split('/').pop() || file.trim()}
                               </Button>
                             )
                           ))}
