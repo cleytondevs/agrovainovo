@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import type { Server } from "http";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -401,7 +402,6 @@ export async function registerRoutes(
       }
 
       // Generate unique code
-      const crypto = require('crypto');
       const code = crypto.randomBytes(16).toString("hex");
 
       // Set expiration (default 7 days)
