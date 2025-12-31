@@ -53,6 +53,13 @@ const COLLECTION_BY = [
   "Técnico",
 ];
 
+const MOON_PHASES = [
+  "Nova",
+  "Crescente",
+  "Cheia",
+  "Minguante",
+];
+
 const soilAnalysisSchema = z.object({
   producerName: z.string().min(1, "Nome do produtor é obrigatório"),
   producerContact: z.string().min(1, "Contato do produtor é obrigatório"),
@@ -67,6 +74,9 @@ const soilAnalysisSchema = z.object({
   sampleDepth: z.string().min(1, "Profundidade da amostra é obrigatória"),
   collectedBy: z.string().min(1, "Informação sobre coleta é obrigatória"),
   fieldName: z.string().min(1, "Nome do campo é obrigatório"),
+  moonPhase: z.string().optional(),
+  relativeHumidity: z.string().refine((val) => !val || (parseFloat(val) >= 0 && parseFloat(val) <= 100), "Umidade deve estar entre 0 e 100%"),
+  precipitation: z.string().refine((val) => !val || parseFloat(val) >= 0, "Precipitação deve ser positiva"),
   notes: z.string().optional(),
 });
 
@@ -99,6 +109,9 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
       sampleDepth: "",
       collectedBy: "",
       fieldName: "",
+      moonPhase: "",
+      relativeHumidity: "",
+      precipitation: "",
       notes: "",
     },
   });
@@ -197,6 +210,9 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
           area: data.area,
           sample_depth: data.sampleDepth,
           collected_by: data.collectedBy,
+          moon_phase: data.moonPhase || "",
+          relative_humidity: data.relativeHumidity ? parseFloat(data.relativeHumidity) : null,
+          precipitation: data.precipitation ? parseFloat(data.precipitation) : null,
           notes: data.notes || "",
           soil_analysis_pdf: uploadedPdf || "",
           attachments: uploadedAttachments.join(";"),
