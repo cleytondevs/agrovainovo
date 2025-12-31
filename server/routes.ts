@@ -441,7 +441,7 @@ export async function registerRoutes(
         invite = await storage.createInviteLink({ code, email, expiresAt });
       }
 
-      const inviteUrl = `${process.env.VITE_APP_URL || 'http://localhost:5000'}/signup?code=${code}`;
+      const inviteUrl = `${process.env.VITE_APP_URL || req.get('origin') || 'http://localhost:5000'}/signup?code=${code}`;
 
       res.status(201).json({ 
         success: true, 
