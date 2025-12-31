@@ -16,7 +16,6 @@ import type { SoilAnalysis } from "@shared/schema";
 import { supabase } from "@/lib/supabaseClient";
 
 function generatePassword(): string {
-  // Use only alphanumeric characters (no special chars to avoid encoding/SQL issues)
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let password = "";
   for (let i = 0; i < 16; i++) {
@@ -38,26 +37,6 @@ function calculateExpirationDate(planType: string): string {
   return expireDate.toISOString();
 }
 
-function formatExpirationDate(expiresAt: string | null): string {
-  if (!expiresAt) return "Data inválida";
-  try {
-    const date = new Date(expiresAt);
-    // Verificar se a data é válida
-    if (isNaN(date.getTime())) {
-      return "Data inválida";
-    }
-    // Check if it's a lifetime plan (date is more than 80 years in the future)
-    const now = new Date();
-    const yearsInFuture = (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
-    if (yearsInFuture > 80) {
-      return "Vitalício";
-    }
-    return date.toLocaleDateString("pt-BR");
-  } catch (e) {
-    return "Data inválida";
-  }
-}
-
 const AdminDashboard = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -77,7 +56,6 @@ const AdminDashboard = () => {
   const [inviteDuration, setInviteDuration] = useState("1_month");
   const [generatedInviteUrl, setGeneratedInviteUrl] = useState("");
 
-  // Check admin password on mount
   useEffect(() => {
     const savedAuth = localStorage.getItem("adminAuth");
     if (savedAuth === "true") {
@@ -86,7 +64,6 @@ const AdminDashboard = () => {
   }, []);
 
   const handleAdminLogin = () => {
-    // Simple password check (change this password!)
     if (adminPassword === "admin123") {
       setIsAuthenticated(true);
       localStorage.setItem("adminAuth", "true");
@@ -110,8 +87,6 @@ const AdminDashboard = () => {
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      
-      // Map database snake_case to camelCase for frontend
       return (data || []).map((a: any) => ({
         ...a,
         fieldName: a.field_name,
@@ -164,134 +139,27 @@ const AdminDashboard = () => {
     enabled: isAuthenticated,
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const { error } = await supabase.from('soil_analysis').update({ status } as any).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
-      toast({ title: "Status atualizado com sucesso" });
-    },
-    onError: () => {
-      toast({ variant: "destructive", title: "Erro ao atualizar status" });
-    },
-  });
-
   const submitAnalysisMutation = useMutation({
     mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
-      // Garantir que adminFileUrls seja um array para evitar erro 22P02 no PostgreSQL/Supabase
       const filesArray = data.adminFileUrls ? data.adminFileUrls.split(";").filter(f => f.trim()) : [];
-      
       const { error } = await supabase.from('soil_analysis').update({
         status: data.status,
         admin_comments: data.adminComments,
-        admin_file_urls: filesArray, // Enviando como Array
+        admin_file_urls: filesArray,
         updated_at: new Date().toISOString()
       } as any).eq('id', data.id);
-      
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/user"] });
       toast({ title: "Análise atualizada com sucesso" });
       setModalOpen(false);
-    },
-    onError: (error: any) => {
-      toast({ 
-        variant: "destructive", 
-        title: "Erro ao salvar", 
-        description: error.message || "Erro de formato nos dados." 
-      });
-    },
-  });
-
-  const deleteAnalysisMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const { error } = await supabase.from('soil_analysis').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
-      toast({ title: "Análise deletada com sucesso" });
-      setModalOpen(false);
-    },
-    onError: () => {
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao deletar análise" });
-    },
-  });
-
-  const createLoginMutation = useMutation({
-    mutationFn: async () => {
-      if (!email) {
-        throw new Error("Email é obrigatório");
-      }
-      // Normalize email: trim and lowercase
-      const normalizedEmail = email.trim().toLowerCase();
-      const password = generatePassword();
-      const expiresAt = calculateExpirationDate(plan);
-      
-      console.log('[AdminDashboard] Creating login with auth:', {
-        email: normalizedEmail,
-        clientName,
-        plan,
-        expiresAt
-      });
-      
-      // Use Netlify Function in production, API endpoint in development
-      const endpoint = import.meta.env.PROD 
-        ? '/.netlify/functions/create-login-with-auth'
-        : '/api/logins/create-with-auth';
-      
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: normalizedEmail,
-          password,
-          clientName,
-          plan,
-          expiresAt
-        })
-      });
-
-      if (!response.ok) {
-        let errorMessage = 'Falha ao criar login';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // Response is not JSON (likely HTML error page)
-          const text = await response.text();
-          console.error('[AdminDashboard] Non-JSON error response:', text.substring(0, 200));
-          errorMessage = `Erro no servidor (${response.status}): ${text.substring(0, 100)}`;
-        }
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
-      setClientName("");
-      setEmail("");
-      setPlan("1_month");
-      toast({ title: "Login gerado com sucesso!", description: "Usuário criado no Supabase Authentication" });
-    },
-    onError: (error) => {
-      toast({ title: "Erro", description: String(error), variant: "destructive" });
     },
   });
 
   const createInviteMutation = useMutation({
     mutationFn: async () => {
-      if (!inviteEmail) {
-        throw new Error("Email é obrigatório");
-      }
+      if (!inviteEmail) throw new Error("Email é obrigatório");
       const response = await fetch('/api/create-invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -300,85 +168,29 @@ const AdminDashboard = () => {
           expiresIn: inviteDuration === '1_month' ? 30 : inviteDuration === '3_months' ? 90 : inviteDuration === '6_months' ? 180 : 36500
         })
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Erro ao criar link');
       }
-
       return response.json();
     },
     onSuccess: (data) => {
       setGeneratedInviteUrl(data.inviteUrl);
-      toast({ title: "Link gerado com sucesso!", description: "Copie o link para enviar ao cliente" });
+      toast({ title: "Link gerado com sucesso!" });
       setInviteEmail("");
-      setInviteDuration("1_month");
-    },
-    onError: (error) => {
-      toast({ title: "Erro", description: String(error), variant: "destructive" });
     },
   });
 
   const deleteLoginMutation = useMutation({
-    mutationFn: async ({ loginId, loginEmail }: { loginId: number; loginEmail: string }) => {
-      // First, delete from logins table
-      const { error: deleteError } = await supabase
-        .from('logins')
-        .delete()
-        .eq('id', loginId);
-      
-      if (deleteError) throw deleteError;
-      
-      // Then, try to delete from Supabase Auth using Edge Function
-      try {
-        const response = await supabase.functions.invoke('delete-auth-user', {
-          body: { email: loginEmail }
-        });
-        
-        if (response.error) {
-          console.warn('Failed to delete from Supabase Auth:', response.error);
-          // Continue anyway - the login record is already deleted
-        }
-      } catch (error) {
-        console.warn('Edge Function not available, but login deleted from table:', error);
-        // This is okay - the login is already deleted from the table
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
-      toast({ title: "Login removido com sucesso do painel e da autenticação!" });
-    },
-    onError: (error) => {
-      toast({ title: "Erro", description: String(error), variant: "destructive" });
-    },
-  });
-
-  const renewalMutation = useMutation({
-    mutationFn: async (loginId: number) => {
-      if (!selectedLoginForRenewal) return;
-      const newExpiresAt = calculateExpirationDate(renewalPlan);
-      const { error } = await supabase
-        .from('logins')
-        .update({ expires_at: newExpiresAt } as any)
-        .eq('id', loginId);
+    mutationFn: async ({ loginId }: { loginId: number }) => {
+      const { error } = await supabase.from('logins').delete().eq('id', loginId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
-      toast({ title: "Plano renovado com sucesso!" });
-      setRenewalModalOpen(false);
-      setSelectedLoginForRenewal(null);
-      setRenewalPlan("1_month");
-    },
-    onError: (error) => {
-      toast({ title: "Erro", description: String(error), variant: "destructive" });
+      toast({ title: "Login removido com sucesso!" });
     },
   });
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: "Copiado!" });
-  };
 
   const filteredAnalyses = filterStatus
     ? analyses.filter((a) => a.status === filterStatus)
@@ -392,26 +204,18 @@ const AdminDashboard = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Painel Administrativo</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Painel Administrativo</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Senha do Admin</label>
-              <Input
-                type="password"
-                placeholder="Digite a senha"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
-                data-testid="input-admin-password"
-              />
-            </div>
-            <Button onClick={handleAdminLogin} className="w-full" data-testid="button-admin-login">
-              Entrar
-            </Button>
+            <Input
+              type="password"
+              placeholder="Senha do Admin"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+            />
+            <Button onClick={handleAdminLogin} className="w-full">Entrar</Button>
           </CardContent>
         </Card>
       </div>
@@ -419,210 +223,60 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold dark:text-white">Painel Administrativo</h1>
-            <p className="text-slate-600 dark:text-slate-400">Gerenciar análises e logins</p>
-          </div>
-          <Button variant="ghost" onClick={handleLogout} data-testid="button-admin-logout">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
+          <h1 className="text-3xl font-bold">Painel Administrativo</h1>
+          <Button variant="ghost" onClick={handleLogout}><LogOut className="w-4 h-4 mr-2" />Sair</Button>
         </div>
 
-        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList>
-            <TabsTrigger value="analyses">Análises de Solo</TabsTrigger>
-            <TabsTrigger value="clients">Clientes Cadastrados</TabsTrigger>
-            <TabsTrigger value="invites">Gerar Links de Convite</TabsTrigger>
-            <TabsTrigger value="logins">Logins Gerados</TabsTrigger>
+            <TabsTrigger value="analyses">Análises</TabsTrigger>
+            <TabsTrigger value="clients">Clientes</TabsTrigger>
+            <TabsTrigger value="invites">Convites</TabsTrigger>
+            <TabsTrigger value="logins">Logins</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analyses" className="space-y-6">
-            {/* Filters */}
-            <div className="flex gap-2 mb-6">
-              <Button
-                variant={filterStatus === null ? "default" : "outline"}
-                onClick={() => setFilterStatus(null)}
-                data-testid="filter-all"
-              >
+            <div className="flex gap-2">
+              <Button variant={filterStatus === null ? "default" : "outline"} onClick={() => setFilterStatus(null)}>
                 Todos ({analyses.length})
               </Button>
               {Object.entries(statusConfig).map(([status, config]) => (
-                <Button
-                  key={status}
-                  variant={filterStatus === status ? "default" : "outline"}
-                  onClick={() => setFilterStatus(status)}
-                  data-testid={`filter-${status}`}
-                >
-                  {config.label} ({analyses.filter((a) => a.status === status).length})
+                <Button key={status} variant={filterStatus === status ? "default" : "outline"} onClick={() => setFilterStatus(status)}>
+                  {config.label} ({analyses.filter(a => a.status === status).length})
                 </Button>
               ))}
             </div>
 
-            {/* Table */}
-            {isLoading ? (
-              <Card>
-                <CardContent className="p-8 text-center text-slate-500">Carregando...</CardContent>
-              </Card>
-            ) : filteredAnalyses.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center text-slate-500">
-                  Nenhuma análise encontrada
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="overflow-x-auto">
-                <Card>
-                  <CardContent className="p-0">
-                    <table className="w-full text-sm">
-                      <thead className="border-b bg-slate-50 dark:bg-slate-800">
-                        <tr>
-                          <th className="px-4 py-3 text-left font-semibold">Email</th>
-                          <th className="px-4 py-3 text-left font-semibold">Produtor</th>
-                          <th className="px-4 py-3 text-left font-semibold">Propriedade</th>
-                          <th className="px-4 py-3 text-left font-semibold">Cultura</th>
-                          <th className="px-4 py-3 text-left font-semibold">Status</th>
-                          <th className="px-4 py-3 text-left font-semibold">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredAnalyses.map((analysis) => (
-                          <tr key={analysis.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.userEmail}</td>
-                            <td className="px-4 py-3 font-medium" data-testid={`text-producer-${analysis.id}`}>
-                              {((analysis as any).producerName || "-")}
-                            </td>
-                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.propertyName || "-"}</td>
-                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.cropType}</td>
-                            <td className="px-4 py-3">
-                              <Badge className={statusConfig[analysis.status as keyof typeof statusConfig]?.color || ""}>
-                                {statusConfig[analysis.status as keyof typeof statusConfig]?.label || analysis.status}
-                              </Badge>
-                            </td>
-                            <td className="px-4 py-3">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedAnalysis(analysis);
-                                  setModalOpen(true);
-                                }}
-                                data-testid={`button-edit-analysis-${analysis.id}`}
-                              >
-                                <Edit2 className="w-4 h-4 mr-1" />
-                                Revisar
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="clients" className="space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold dark:text-white">Clientes Cadastrados ({users.length})</h2>
-            </div>
-            {isLoadingUsers ? (
-              <Card><CardContent className="p-4">Carregando usuários...</CardContent></Card>
-            ) : users.length === 0 ? (
-              <Card><CardContent className="p-4">Nenhum cliente cadastrado ainda.</CardContent></Card>
-            ) : (
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="border-b bg-slate-50 dark:bg-slate-800">
-                        <tr>
-                          <th className="px-4 py-3 text-left font-semibold">Nome</th>
-                          <th className="px-4 py-3 text-left font-semibold">Email</th>
-                          <th className="px-4 py-3 text-left font-semibold">Telefone</th>
-                          <th className="px-4 py-3 text-left font-semibold">Profissão</th>
-                          <th className="px-4 py-3 text-left font-semibold">Data Cadastro</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((user: any) => (
-                          <tr key={user.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <td className="px-4 py-3 font-medium">{user.fullName || "-"}</td>
-                            <td className="px-4 py-3">{user.email}</td>
-                            <td className="px-4 py-3">{user.phone || "-"}</td>
-                            <td className="px-4 py-3">{user.occupation || "-"}</td>
-                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                              {user.createdAt ? new Date(user.createdAt).toLocaleDateString("pt-BR") : "-"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-                        <td className="px-4 py-3 font-medium" data-testid={`text-property-${analysis.id}`}>
-                          {((analysis as any).propertyName || "-")}
-                        </td>
-                        <td className="px-4 py-3">{analysis.cropType}</td>
+            <Card>
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-slate-50 dark:bg-slate-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Email</th>
+                      <th className="px-4 py-3 text-left">Produtor</th>
+                      <th className="px-4 py-3 text-left">Propriedade</th>
+                      <th className="px-4 py-3 text-left">Cultura</th>
+                      <th className="px-4 py-3 text-left">Status</th>
+                      <th className="px-4 py-3 text-left">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAnalyses.map((a) => (
+                      <tr key={a.id} className="border-b hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <td className="px-4 py-3">{a.userEmail}</td>
+                        <td className="px-4 py-3">{a.producerName || "-"}</td>
+                        <td className="px-4 py-3">{a.propertyName || "-"}</td>
+                        <td className="px-4 py-3">{a.cropType}</td>
                         <td className="px-4 py-3">
-                          <Badge className={statusConfig[analysis.status as keyof typeof statusConfig]?.color}>
-                            {statusConfig[analysis.status as keyof typeof statusConfig]?.label}
-                          </Badge>
+                          <Badge className={statusConfig[a.status as keyof typeof statusConfig]?.color}>{statusConfig[a.status as keyof typeof statusConfig]?.label}</Badge>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                              onClick={() => {
-                                setSelectedAnalysis(analysis);
-                                setModalOpen(true);
-                              }}
-                              data-testid={`button-edit-${analysis.id}`}
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-green-600 border-green-200 hover:bg-green-50"
-                              onClick={() =>
-                                updateStatusMutation.mutate({
-                                  id: analysis.id,
-                                  status: "approved",
-                                })
-                              }
-                              disabled={updateStatusMutation.isPending}
-                              data-testid={`button-approve-${analysis.id}`}
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 border-red-200 hover:bg-red-50"
-                              onClick={() =>
-                                updateStatusMutation.mutate({
-                                  id: analysis.id,
-                                  status: "rejected",
-                                })
-                              }
-                              disabled={updateStatusMutation.isPending}
-                              data-testid={`button-reject-${analysis.id}`}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          <Button size="sm" variant="outline" onClick={() => { setSelectedAnalysis(a); setModalOpen(true); }}>
+                            Revisar
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -630,83 +284,48 @@ const AdminDashboard = () => {
                 </table>
               </CardContent>
             </Card>
-            </div>
-            )}
+          </TabsContent>
 
-            {/* Modal */}
-            <AdminAnalysisModal
-              open={modalOpen}
-              analysis={selectedAnalysis}
-              onClose={() => setModalOpen(false)}
-              onSubmit={(data) =>
-                submitAnalysisMutation.mutateAsync({
-                  id: selectedAnalysis!.id,
-                  ...data,
-                })
-              }
-            />
+          <TabsContent value="clients" className="space-y-6">
+            <h2 className="text-xl font-bold">Clientes Cadastrados ({users.length})</h2>
+            <Card>
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-slate-50 dark:bg-slate-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Nome</th>
+                      <th className="px-4 py-3 text-left">Email</th>
+                      <th className="px-4 py-3 text-left">Telefone</th>
+                      <th className="px-4 py-3 text-left">Profissão</th>
+                      <th className="px-4 py-3 text-left">Cadastro</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((u) => (
+                      <tr key={u.id} className="border-b hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <td className="px-4 py-3">{u.fullName || "-"}</td>
+                        <td className="px-4 py-3">{u.email}</td>
+                        <td className="px-4 py-3">{u.phone || "-"}</td>
+                        <td className="px-4 py-3">{u.occupation || "-"}</td>
+                        <td className="px-4 py-3">{u.createdAt ? new Date(u.createdAt).toLocaleDateString("pt-BR") : "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="invites" className="space-y-6">
-            {/* Create Invite Form */}
             <Card>
-              <CardHeader>
-                <CardTitle>Gerar Link de Convite</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>Gerar Novo Convite</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email do Cliente</label>
-                  <Input
-                    type="email"
-                    placeholder="Ex: cliente@example.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    data-testid="input-invite-email"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Duração do Link</label>
-                  <Select value={inviteDuration} onValueChange={setInviteDuration}>
-                    <SelectTrigger data-testid="select-invite-duration">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1_month">1 Mês</SelectItem>
-                      <SelectItem value="3_months">3 Meses</SelectItem>
-                      <SelectItem value="6_months">6 Meses</SelectItem>
-                      <SelectItem value="lifetime">Vitalício</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  onClick={() => createInviteMutation.mutate()}
-                  disabled={createInviteMutation.isPending}
-                  className="w-full"
-                  data-testid="button-generate-invite"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {createInviteMutation.isPending ? "Gerando..." : "Gerar Link"}
-                </Button>
-
+                <Input placeholder="Email do Cliente" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+                <Button onClick={() => createInviteMutation.mutate()} className="w-full">Gerar Link</Button>
                 {generatedInviteUrl && (
-                  <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                    <p className="text-sm font-medium mb-2 text-green-900 dark:text-green-100">Link de Convite Gerado:</p>
-                    <div className="flex gap-2 items-center">
-                      <code className="bg-white dark:bg-green-950 px-3 py-2 rounded font-mono text-sm flex-1 break-all">
-                        {generatedInviteUrl}
-                      </code>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => {
-                          navigator.clipboard.writeText(generatedInviteUrl);
-                          toast({ title: "Link copiado!" });
-                        }}
-                        data-testid="button-copy-invite-url"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
+                  <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-md break-all flex items-center justify-between">
+                    <span className="mr-2">{generatedInviteUrl}</span>
+                    <Button size="icon" variant="ghost" onClick={() => { navigator.clipboard.writeText(generatedInviteUrl); toast({ title: "Copiado!" }); }}><Copy className="w-4 h-4" /></Button>
                   </div>
                 )}
               </CardContent>
@@ -714,170 +333,45 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="logins" className="space-y-6">
-            {/* Create Login Form */}
+            <h2 className="text-xl font-bold">Logins Gerados ({logins.length})</h2>
             <Card>
-              <CardHeader>
-                <CardTitle>Criar Novo Login</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Nome do Cliente</label>
-                  <Input
-                    placeholder="Ex: João Silva"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    data-testid="input-client-name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email (será o usuário)</label>
-                  <Input
-                    type="email"
-                    placeholder="Ex: joao@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    data-testid="input-email"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Plano</label>
-                  <Select value={plan} onValueChange={setPlan}>
-                    <SelectTrigger data-testid="select-plan">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1_month">1 Mês</SelectItem>
-                      <SelectItem value="3_months">3 Meses</SelectItem>
-                      <SelectItem value="6_months">6 Meses</SelectItem>
-                      <SelectItem value="lifetime">Vitalício</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  onClick={() => createLoginMutation.mutate()}
-                  disabled={createLoginMutation.isPending}
-                  data-testid="button-generate-login"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Gerar Login
-                </Button>
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-slate-50 dark:bg-slate-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Cliente</th>
+                      <th className="px-4 py-3 text-left">Email</th>
+                      <th className="px-4 py-3 text-left">Plano</th>
+                      <th className="px-4 py-3 text-left">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logins.map((l) => (
+                      <tr key={l.id} className="border-b hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <td className="px-4 py-3">{l.clientName}</td>
+                        <td className="px-4 py-3">{l.email}</td>
+                        <td className="px-4 py-3"><Badge variant="outline">{l.plan}</Badge></td>
+                        <td className="px-4 py-3">
+                          <Button size="sm" variant="destructive" onClick={() => deleteLoginMutation.mutate({ loginId: l.id })}><Trash2 className="w-4 h-4" /></Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </CardContent>
             </Card>
-
-            {/* Logins List */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-4 dark:text-white">Logins Gerados ({logins.length})</h2>
-              {isLoadingLogins ? (
-                <Card><CardContent className="p-4">Carregando logins...</CardContent></Card>
-              ) : logins.length === 0 ? (
-                <Card><CardContent className="p-4 text-center text-slate-500">Nenhum login gerado ainda</CardContent></Card>
-              ) : (
-                <div className="grid gap-4">
-                  {logins.map((login: any) => (
-                    <Card key={login.id}>
-                      <CardContent className="p-4">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-lg">{login.clientName}</h3>
-                              <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
-                                {login.status}
-                              </span>
-                            </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{login.email}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                              Plano: {login.plan === "1_month" ? "1 Mês" : login.plan === "3_months" ? "3 Meses" : login.plan === "6_months" ? "6 Meses" : "Vitalício"} | 
-                              Expira em: {formatExpirationDate(login.expires_at)}
-                            </p>
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm">Usuário:</span>
-                                <code className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-mono text-sm">
-                                  {login.username}
-                                </code>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => copyToClipboard(login.username)}
-                                  data-testid={`button-copy-username-${login.id}`}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm">Senha:</span>
-                                <code className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-mono text-sm">
-                                  {login.password}
-                                </code>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => copyToClipboard(login.password)}
-                                  data-testid={`button-copy-password-${login.id}`}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                              Criado em: {new Date(login.createdAt).toLocaleDateString("pt-BR")}
-                            </p>
-                          </div>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => deleteLoginMutation.mutate({ loginId: login.id, loginEmail: login.email })}
-                            disabled={deleteLoginMutation.isPending}
-                            data-testid={`button-delete-login-${login.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
           </TabsContent>
         </Tabs>
-
-        {/* Renewal Dialog */}
-        <Dialog open={renewalModalOpen} onOpenChange={setRenewalModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Renovar Plano - {selectedLoginForRenewal?.clientName}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Escolha o novo plano:</label>
-                <Select value={renewalPlan} onValueChange={setRenewalPlan}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1_month">1 Mês</SelectItem>
-                    <SelectItem value="3_months">3 Meses</SelectItem>
-                    <SelectItem value="6_months">6 Meses</SelectItem>
-                    <SelectItem value="lifetime">Vitalício</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setRenewalModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => selectedLoginForRenewal && renewalMutation.mutate(selectedLoginForRenewal.id)}
-                disabled={renewalMutation.isPending}
-              >
-                {renewalMutation.isPending ? "Renovando..." : "Renovar"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {selectedAnalysis && (
+        <AdminAnalysisModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          analysis={selectedAnalysis}
+          onSubmit={(data) => submitAnalysisMutation.mutate({ id: selectedAnalysis.id, ...data })}
+        />
+      )}
     </div>
   );
 };
