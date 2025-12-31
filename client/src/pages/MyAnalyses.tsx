@@ -32,30 +32,15 @@ export default function MyAnalyses() {
     checkUser();
   }, [setLocation]);
 
-  // Realtime subscription para atualizar análises quando admin faz mudanças
+  // Refetch quando o admin atualiza a análise
   useEffect(() => {
     if (!user?.email) return;
 
-    const channel = supabase.channel(`soil-analysis-${user.email}`);
-    const subscription = channel
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'soil_analysis',
-          filter: `user_email=eq.${user.email}`
-        },
-        () => {
-          // Refetch análises quando alguma mudança é detectada
-          queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/user", user?.email] });
-        }
-      )
-      .subscribe();
+    const timer = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/user", user?.email] });
+    }, 2000);
 
-    return () => {
-      channel.unsubscribe();
-    };
+    return () => clearInterval(timer);
   }, [user?.email]);
 
   const { data: analyses = [], isLoading } = useQuery<any[]>({

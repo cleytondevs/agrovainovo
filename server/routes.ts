@@ -156,13 +156,46 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Status is required" });
       }
 
-      const updated = await storage.updateSoilAnalysisWithComments(
-        id,
-        status,
-        adminComments || "",
-        adminFileUrls || ""
-      );
-      res.json(updated);
+      // Update directly in Supabase since we're using Supabase as the database
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
+
+      if (!supabaseUrl || !supabaseServiceKey) {
+        // Fallback to storage if Supabase not configured
+        const updated = await storage.updateSoilAnalysisWithComments(
+          id,
+          status,
+          adminComments || "",
+          adminFileUrls || ""
+        );
+        return res.json(updated);
+      }
+
+      const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
+      const supabaseAdmin = createSupabaseClient(supabaseUrl, supabaseServiceKey);
+
+      const filesArray = adminFileUrls ? adminFileUrls.split(";").filter(f => f.trim()) : [];
+      
+      const { data, error } = await supabaseAdmin
+        .from('soil_analysis')
+        .update({
+          status: status,
+          admin_comments: adminComments || "",
+          admin_file_urls: filesArray,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select();
+
+      if (error) {
+        throw new Error(error.message || "Failed to update analysis");
+      }
+
+      if (!data || data.length === 0) {
+        return res.status(404).json({ error: "Analysis not found" });
+      }
+
+      res.json(data[0]);
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to update analysis" });
     }
