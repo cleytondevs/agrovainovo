@@ -49,12 +49,18 @@ export default function MyAnalyses() {
         fieldName: a.field_name,
         cropType: a.crop_type,
         userEmail: a.user_email,
+        producerName: a.producer_name,
+        propertyName: a.property_name,
+        cropAge: a.crop_age,
+        productionType: a.production_type,
+        sampleDepth: a.sample_depth,
+        collectedBy: a.collected_by,
         organicMatter: a.organic_matter,
         adminComments: a.admin_comments,
         adminFileUrls: a.admin_file_urls,
         updatedAt: a.updated_at,
         createdAt: a.created_at
-      })) as any[];
+      }));
     },
     enabled: !!user?.email,
     staleTime: 1000 * 60 * 5,
@@ -209,6 +215,24 @@ export default function MyAnalyses() {
                   </CardHeader>
 
                   <CardContent className="space-y-4">
+                    {/* Dados do Produtor (Opcional se houver) */}
+                    {(analysis.producerName || analysis.propertyName) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
+                        {analysis.producerName && (
+                          <div>
+                            <span className="text-slate-600 dark:text-slate-400">Produtor:</span>
+                            <p className="font-medium text-slate-900 dark:text-slate-100">{analysis.producerName}</p>
+                          </div>
+                        )}
+                        {analysis.propertyName && (
+                          <div>
+                            <span className="text-slate-600 dark:text-slate-400">Propriedade:</span>
+                            <p className="font-medium text-slate-900 dark:text-slate-100">{analysis.propertyName}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Dados da Análise */}
                     <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
                       <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-3">
