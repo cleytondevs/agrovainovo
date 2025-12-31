@@ -56,9 +56,23 @@ export function AdminAnalysisModal({
       return;
     }
 
+    const { data: client, error: clientError } = await (async () => {
+      try {
+        const c = await supabase;
+        return { data: c, error: null };
+      } catch (e: any) {
+        return { data: null, error: e };
+      }
+    })();
+
+    if (clientError || !client) {
+      toast({ variant: "destructive", title: "Erro", description: "Cliente Supabase não inicializado" });
+      return;
+    }
+
     setDownloadingPdf(true);
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = await client.storage
         .from('soil-analysis-pdfs')
         .download(analysis.soil_analysis_pdf);
       
@@ -85,12 +99,26 @@ export function AdminAnalysisModal({
     const files = e.target.files;
     if (!files) return;
 
+    const { data: client, error: clientError } = await (async () => {
+      try {
+        const c = await supabase;
+        return { data: c, error: null };
+      } catch (e: any) {
+        return { data: null, error: e };
+      }
+    })();
+
+    if (clientError || !client) {
+      toast({ variant: "destructive", title: "Erro", description: "Cliente Supabase não inicializado" });
+      return;
+    }
+
     setUploadingFile(true);
     try {
       const newUrls: string[] = [];
       for (const file of Array.from(files)) {
         const fileName = `report-${Date.now()}-${file.name}`;
-        const { data, error } = await supabase.storage
+        const { data, error } = await client.storage
           .from('soil-analysis-pdfs')
           .upload(fileName, file);
 

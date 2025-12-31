@@ -156,16 +156,37 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Status is required" });
       }
 
-      // Update directly in Supabase with anon key (clients can update their own analyses)
+      // Update directly in Supabase with admin key (more reliable for admin operations)
       const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-      if (!supabaseUrl || !supabaseAnonKey) {
-        return res.status(500).json({ error: "Supabase not configured" });
+      if (!supabaseUrl || !serviceRoleKey) {
+        console.warn('[PATCH /api/soil-analysis/:id/review] Missing service role key, trying anon key');
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+        if (!supabaseUrl || !supabaseAnonKey) {
+          return res.status(500).json({ error: "Supabase not configured" });
+        }
+        const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
+        const supabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+        
+        const filesArray = adminFileUrls ? adminFileUrls.split(";").filter((f: string) => f.trim()) : [];
+        const { data, error } = await supabaseClient
+          .from('soil_analysis')
+          .update({
+            status: status,
+            admin_comments: adminComments || "",
+            admin_file_urls: filesArray,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select();
+
+        if (error) throw error;
+        return res.json(data?.[0]);
       }
 
       const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
-      const supabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+      const supabaseClient = createSupabaseClient(supabaseUrl, serviceRoleKey);
 
       const filesArray = adminFileUrls ? adminFileUrls.split(";").filter((f: string) => f.trim()) : [];
       
