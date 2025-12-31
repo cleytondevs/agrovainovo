@@ -455,7 +455,7 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto space-y-8">
             {activeTab === "overview" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Card className="border-none shadow-md bg-gradient-to-br from-blue-500 to-blue-600 text-white overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-4 opacity-10"><CloudSun size={100} /></div>
                     <CardHeader className="pb-2">
@@ -468,64 +468,45 @@ export default function Dashboard() {
                       <div className="flex items-end gap-2 mb-3">
                         <span className="text-4xl font-bold">{weather ? `${weather.temp}°C` : "24°C"}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm opacity-80 mb-3">
+                      <div className="flex items-center gap-2 text-sm opacity-80">
                         <MapPin size={14} /> {weather ? weather.city : "São Paulo"}, BR
                       </div>
-                      <div className="space-y-2 text-xs opacity-90 border-t border-white/20 pt-2">
+                      <div className="text-xs opacity-90 mt-2">
                         <div className="flex items-center justify-between">
                           <span>Umidade do Ar:</span>
                           <span className="font-bold">{weather ? `${weather.humidity}%` : "65%"}</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span>Precipitação:</span>
-                          <span className="font-bold">{weather ? `${weather.precipitation.toFixed(1)}mm` : "0.0mm"}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>Fase da Lua:</span>
-                          <span className="font-bold">{weather ? weather.moonPhase : "Nova"}</span>
-                        </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-none shadow-md bg-white overflow-hidden">
+                  <Card className="border-none shadow-md bg-gradient-to-br from-yellow-400 to-orange-400 text-white overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Moon size={100} /></div>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-green-500" />
-                        Saúde do Plantio (NDVI)
+                      <CardTitle className="text-lg font-medium opacity-90 flex items-center gap-2">
+                        <Moon className="h-5 w-5" />
+                        Fase da Lua
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">0.82</div>
-                      <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                        <ArrowUp className="h-3 w-3" /> +4% vs semana anterior
+                      <div className="text-4xl font-bold mb-2">{weather ? weather.moonPhase : "Nova"}</div>
+                      <p className="text-sm opacity-80">
+                        Iluminação: <span className="font-bold">{weather ? `${weather.moonIllumination}%` : "0%"}</span>
                       </p>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-none shadow-md bg-white overflow-hidden">
+                  <Card className="border-none shadow-md bg-gradient-to-br from-cyan-500 to-blue-500 text-white overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><CloudSun size={100} /></div>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Sprout className="h-4 w-4 text-blue-500" />
-                        Umidade do Solo
+                      <CardTitle className="text-lg font-medium opacity-90 flex items-center gap-2">
+                        <CloudSun className="h-5 w-5" />
+                        Precipitação
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">32%</div>
-                      <p className="text-xs text-muted-foreground mt-1">Ideal: 28% - 35%</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-none shadow-md bg-white overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Leaf className="h-4 w-4 text-orange-500" />
-                        Pressão de Pragas
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-orange-600">Baixa</div>
-                      <p className="text-xs text-muted-foreground mt-1">Nenhum alerta crítico</p>
+                      <div className="text-4xl font-bold mb-2">{weather ? `${weather.precipitation.toFixed(1)}` : "0.0"}</div>
+                      <p className="text-sm opacity-80">milímetros de chuva</p>
                     </CardContent>
                   </Card>
                 </div>
