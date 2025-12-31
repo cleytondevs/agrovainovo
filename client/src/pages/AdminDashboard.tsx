@@ -123,6 +123,7 @@ const AdminDashboard = () => {
         sampleDepth: a.sample_depth,
         collectedBy: a.collected_by,
         soilAnalysisPdf: a.soil_analysis_pdf,
+        attachments: a.attachments,
         adminComments: a.admin_comments,
         adminFileUrls: a.admin_file_urls,
         updatedAt: a.updated_at,

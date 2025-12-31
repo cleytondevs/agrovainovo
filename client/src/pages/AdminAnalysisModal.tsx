@@ -238,6 +238,30 @@ export function AdminAnalysisModal({
             </Card>
           )}
 
+          {/* Attachments */}
+          {analysis.attachments && (
+            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+              <CardContent className="pt-6">
+                <h4 className="font-semibold text-blue-700 mb-3">Arquivos Adicionais do Produtor</h4>
+                <div className="space-y-2">
+                  {analysis.attachments.split(";").filter(f => f).map((file, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-white dark:bg-slate-800 p-2 rounded border border-blue-100">
+                      <span className="text-sm truncate">{file.split('-').slice(2).join('-')}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-blue-600"
+                        data-testid={`button-download-attachment-${idx}`}
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Status Selection */}
           <div>
             <Label htmlFor="status">Status da Análise</Label>
