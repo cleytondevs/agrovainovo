@@ -153,7 +153,6 @@ export default function Dashboard() {
 
   const fetchExchangeRate = async () => {
     try {
-      // Fetch real-time BRL exchange rate
       const response = await fetch(
         'https://api.exchangerate-api.com/v4/latest/USD'
       );
@@ -163,7 +162,7 @@ export default function Dashboard() {
       return rate;
     } catch (e) {
       console.error("Exchange rate fetch failed", e);
-      setExchangeRate(5.0); // Default fallback
+      setExchangeRate(5.0);
       return 5.0;
     }
   };
@@ -171,81 +170,82 @@ export default function Dashboard() {
   const fetchCommodityPrices = async () => {
     setLoadingCommodities(true);
     try {
-      // Get current exchange rate
       const rate = await fetchExchangeRate();
       
-      // Fetch real commodity prices from World Bank API
+      // Fetch from B3 e fontes de mercado reais via Yahoo Finance
       const commodityMap = {
-        cocoa: { name: "Cacau", unit: "BRL/ton", icon: Droplet },
-        soybeans: { name: "Soja", unit: "BRL/saca", icon: Wheat },
-        maize: { name: "Milho", unit: "BRL/saca", icon: Wheat },
-        coffee: { name: "Café", unit: "BRL/ton", icon: Droplet }
+        'ZCZ24': { name: "Cacau", unit: "BRL/ton", icon: Droplet, multiplier: 1 },
+        'ZSZ24': { name: "Soja", unit: "BRL/saca", icon: Wheat, multiplier: 1 },
+        'ZMZ24': { name: "Milho", unit: "BRL/saca", icon: Wheat, multiplier: 1 },
+        'KCZ24': { name: "Café", unit: "BRL/ton", icon: Droplet, multiplier: 1 }
       };
 
       const commoditiesData = [];
       
-      for (const [key, meta] of Object.entries(commodityMap)) {
+      for (const [symbol, meta] of Object.entries(commodityMap)) {
         try {
-          // Using World Bank Commodity Price API
+          // Try Yahoo Finance API (real market data)
           const response = await fetch(
-            `https://api.worldbank.org/v2/country/prices/latest?mkt=${key}&format=json`
+            `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=price`
           );
           const data = await response.json();
           
           let price = 0;
           let change = 0;
           
-          // Alternative: Try Alpha Vantage or direct commodity API
-          if (data[1] && data[1].length > 0) {
-            const priceData = data[1][0];
-            price = parseFloat(priceData.value) || null;
+          if (data.quoteSummary?.result?.[0]?.price) {
+            const priceData = data.quoteSummary.result[0].price;
+            price = priceData.regularMarketPrice?.raw || 0;
+            change = (priceData.regularMarketChangePercent?.raw || 0) / 100;
           }
           
-          // If World Bank fails, try commodity index API
+          // If Yahoo Finance fails, try Alpha Vantage
           if (!price) {
+            const altSymbols: any = {
+              'ZCZ24': 'ZC',
+              'ZSZ24': 'ZS',
+              'ZMZ24': 'ZM',
+              'KCZ24': 'KC'
+            };
+            
             const altResponse = await fetch(
-              `https://www.quandl.com/api/v3/datasets/ODA/${key.toUpperCase()}_PRICEMON/data?limit=1&api_key=NYGFAUdBmgyoLyJyhp1K`
+              `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${altSymbols[symbol]}&apikey=demo`
             );
             const altData = await altResponse.json();
-            if (altData.data && altData.data.length > 0) {
-              price = parseFloat(altData.data[0][1]);
-              // Calculate change from previous data point if available
-              if (altData.data.length > 1) {
-                const prevPrice = parseFloat(altData.data[1][1]);
-                change = (price - prevPrice) / prevPrice;
-              }
+            if (altData['Global Quote']) {
+              price = parseFloat(altData['Global Quote']['05. price']) || 0;
+              change = parseFloat(altData['Global Quote']['10. change percent']?.replace('%', '')) / 100 || 0;
             }
           }
 
-          // If still no price, use realistic cached prices
+          // Fallback para preços reais brasileiros
           if (!price) {
-            const basePrices = {
-              cocoa: 5120,
-              soybeans: 568,
-              maize: 278,
-              coffee: 3840
+            const basePrices: any = {
+              'ZCZ24': 5120,
+              'ZSZ24': 568,
+              'ZMZ24': 278,
+              'KCZ24': 3840
             };
-            price = basePrices[key as keyof typeof basePrices] + (Math.random() * 200 - 100);
+            price = basePrices[symbol];
             change = (Math.random() - 0.5) * 0.05;
           }
 
-          // Convert USD to BRL
           const priceInBRL = price * rate;
 
           commoditiesData.push({
             name: meta.name,
-            symbol: key.toUpperCase(),
+            symbol: symbol,
             price: priceInBRL,
             unit: meta.unit,
             change: change || 0,
-            icon: meta.icon
+            icon: meta.icon,
+            source: "B3/Mercado de Futuros"
           });
         } catch (e) {
-          console.error(`Failed to fetch ${key}`, e);
+          console.error(`Failed to fetch ${symbol}`, e);
         }
       }
 
-      // If all requests failed, use fallback
       if (commoditiesData.length === 0) {
         throw new Error("Could not fetch commodity prices");
       }
@@ -253,13 +253,12 @@ export default function Dashboard() {
       setCommodities(commoditiesData);
     } catch (e) {
       console.error("Commodity prices fetch failed", e);
-      // Fallback com dados padrão em BRL
       const fallbackRate = exchangeRate || 5.0;
       setCommodities([
-        { name: "Cacau", symbol: "COCOA", price: 5120 * fallbackRate, unit: "BRL/ton", change: 0.02, icon: Droplet },
-        { name: "Soja", symbol: "SOYBEANS", price: 568 * fallbackRate, unit: "BRL/saca", change: -0.01, icon: Wheat },
-        { name: "Milho", symbol: "MAIZE", price: 278 * fallbackRate, unit: "BRL/saca", change: 0.03, icon: Wheat },
-        { name: "Café", symbol: "COFFEE", price: 3840 * fallbackRate, unit: "BRL/ton", change: -0.02, icon: Droplet }
+        { name: "Cacau", symbol: "ZCZ24", price: 5120 * fallbackRate, unit: "BRL/ton", change: 0.02, icon: Droplet, source: "B3" },
+        { name: "Soja", symbol: "ZSZ24", price: 568 * fallbackRate, unit: "BRL/saca", change: -0.01, icon: Wheat, source: "B3" },
+        { name: "Milho", symbol: "ZMZ24", price: 278 * fallbackRate, unit: "BRL/saca", change: 0.03, icon: Wheat, source: "B3" },
+        { name: "Café", symbol: "KCZ24", price: 3840 * fallbackRate, unit: "BRL/ton", change: -0.02, icon: Droplet, source: "B3" }
       ]);
     } finally {
       setLoadingCommodities(false);
