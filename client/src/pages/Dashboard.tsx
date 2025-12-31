@@ -98,6 +98,7 @@ export default function Dashboard() {
   const [loadingNews, setLoadingNews] = useState(false);
   const [commodities, setCommodities] = useState<any[]>([]);
   const [loadingCommodities, setLoadingCommodities] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number>(5.0);
   const CALENDAR_YEAR = 2026;
 
   const loginForm = useForm<LoginFormValues>({
@@ -150,15 +151,35 @@ export default function Dashboard() {
     }
   };
 
+  const fetchExchangeRate = async () => {
+    try {
+      // Fetch real-time BRL exchange rate
+      const response = await fetch(
+        'https://api.exchangerate-api.com/v4/latest/USD'
+      );
+      const data = await response.json();
+      const rate = data.rates?.BRL || 5.0;
+      setExchangeRate(rate);
+      return rate;
+    } catch (e) {
+      console.error("Exchange rate fetch failed", e);
+      setExchangeRate(5.0); // Default fallback
+      return 5.0;
+    }
+  };
+
   const fetchCommodityPrices = async () => {
     setLoadingCommodities(true);
     try {
+      // Get current exchange rate
+      const rate = await fetchExchangeRate();
+      
       // Fetch real commodity prices from World Bank API
       const commodityMap = {
-        cocoa: { name: "Cacau", unit: "USD/ton", icon: Droplet },
-        soybeans: { name: "Soja", unit: "USD/saca", icon: Wheat },
-        maize: { name: "Milho", unit: "USD/saca", icon: Wheat },
-        coffee: { name: "Café", unit: "USD/ton", icon: Droplet }
+        cocoa: { name: "Cacau", unit: "BRL/ton", icon: Droplet },
+        soybeans: { name: "Soja", unit: "BRL/saca", icon: Wheat },
+        maize: { name: "Milho", unit: "BRL/saca", icon: Wheat },
+        coffee: { name: "Café", unit: "BRL/ton", icon: Droplet }
       };
 
       const commoditiesData = [];
@@ -196,15 +217,8 @@ export default function Dashboard() {
             }
           }
 
-          // If still no price, try metals.live or other endpoints
+          // If still no price, use realistic cached prices
           if (!price) {
-            const commoditySymbols = {
-              cocoa: "ZC",
-              soybeans: "ZS",
-              maize: "ZM",
-              coffee: "KC"
-            };
-            // Fallback to realistic cached prices with small random variation
             const basePrices = {
               cocoa: 5120,
               soybeans: 568,
@@ -215,10 +229,13 @@ export default function Dashboard() {
             change = (Math.random() - 0.5) * 0.05;
           }
 
+          // Convert USD to BRL
+          const priceInBRL = price * rate;
+
           commoditiesData.push({
             name: meta.name,
             symbol: key.toUpperCase(),
-            price: price || 0,
+            price: priceInBRL,
             unit: meta.unit,
             change: change || 0,
             icon: meta.icon
@@ -236,12 +253,13 @@ export default function Dashboard() {
       setCommodities(commoditiesData);
     } catch (e) {
       console.error("Commodity prices fetch failed", e);
-      // Fallback com dados padrão de fontes confiáveis
+      // Fallback com dados padrão em BRL
+      const fallbackRate = exchangeRate || 5.0;
       setCommodities([
-        { name: "Cacau", symbol: "COCOA", price: 5120, unit: "USD/ton", change: 0.02, icon: Droplet },
-        { name: "Soja", symbol: "SOYBEANS", price: 568, unit: "USD/saca", change: -0.01, icon: Wheat },
-        { name: "Milho", symbol: "MAIZE", price: 278, unit: "USD/saca", change: 0.03, icon: Wheat },
-        { name: "Café", symbol: "COFFEE", price: 3840, unit: "USD/ton", change: -0.02, icon: Droplet }
+        { name: "Cacau", symbol: "COCOA", price: 5120 * fallbackRate, unit: "BRL/ton", change: 0.02, icon: Droplet },
+        { name: "Soja", symbol: "SOYBEANS", price: 568 * fallbackRate, unit: "BRL/saca", change: -0.01, icon: Wheat },
+        { name: "Milho", symbol: "MAIZE", price: 278 * fallbackRate, unit: "BRL/saca", change: 0.03, icon: Wheat },
+        { name: "Café", symbol: "COFFEE", price: 3840 * fallbackRate, unit: "BRL/ton", change: -0.02, icon: Droplet }
       ]);
     } finally {
       setLoadingCommodities(false);
@@ -635,7 +653,7 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold text-primary mb-1">
-                            ${commodity.price.toFixed(2)}
+                            R${commodity.price.toFixed(2)}
                           </div>
                           <div className="text-xs text-muted-foreground mb-2">{commodity.unit}</div>
                           <div className={`text-xs font-bold flex items-center gap-1 ${commodity.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
