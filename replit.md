@@ -1,8 +1,6 @@
-# Replit.md
-
 ## Overview
 
-This is an Agro Tech web application built with a React frontend and Express backend. The project combines agricultural themes with technology to create a dashboard-style application. The frontend uses Supabase for authentication, while the backend is structured to support PostgreSQL via Drizzle ORM. The application features a login system and protected dashboard with agricultural monitoring widgets.
+This is an Agro Tech web application built with a React frontend and Express backend. The project combines agricultural themes with technology to create a dashboard-style application. The application uses Supabase for the backend (authentication and data persistence) and is configured for deployment on Netlify for the frontend. The application features a login system and protected dashboard with agricultural monitoring widgets.
 
 ## User Preferences
 
@@ -12,6 +10,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
+- **Hosting**: Netlify
 - **Routing**: Wouter (lightweight alternative to React Router)
 - **State Management**: TanStack React Query for server state
 - **UI Components**: Shadcn/ui component library built on Radix UI primitives
@@ -19,26 +18,12 @@ Preferred communication style: Simple, everyday language.
 - **Form Handling**: React Hook Form with Zod validation
 - **Fonts**: Outfit (display) and Plus Jakarta Sans (body)
 
-### Access Control & Pages
-- **SignUp** (`/`) - Public page for creating new accounts
-- **SetupAccess** (`/setup?code=XXXXX`) - Restricted page for initial setup with single-use link (usage expires after one use)
-- **Dashboard** (`/dashboard`) - Protected page with login functionality for existing users
-
 ### Backend Architecture
-- **Framework**: Express.js with TypeScript
-- **Build System**: Vite for frontend, esbuild for server bundling
-- **API Structure**: RESTful endpoints defined in `shared/routes.ts` with Zod schemas
-- **Development Server**: Integrated Vite dev server with HMR support
-
-### Authentication
-- **Provider**: Supabase Authentication (client-side)
-- **Pattern**: Frontend communicates directly with Supabase for auth
-- **Environment Variables**: 
-  - `VITE_SUPABASE_URL` - Public Supabase project URL
-  - `VITE_SUPABASE_ANON_KEY` - Populated from secret `SUPABASE_ANON_KEY`
-  - Secret `SUPABASE_ANON_KEY` - Secure storage for the anon key
-- The backend doesn't handle auth directly; Supabase manages user sessions
-- **Security**: The anon key is stored as a Replit secret and exposed to frontend via environment variable
+- **Provider**: Supabase (BaaS)
+- **Functions**: Netlify Functions for serverless logic (e.g., login management)
+- **Authentication**: Supabase Authentication (client-side)
+- **Data Storage**: Supabase Database (PostgreSQL)
+- **API Structure**: Client communicates directly with Supabase client; some edge cases handled by serverless functions.
 
 ### Deployment Notes
 **For Netlify (Required for Supabase login to work):**
