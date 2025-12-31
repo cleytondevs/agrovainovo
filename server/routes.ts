@@ -163,7 +163,7 @@ export async function registerRoutes(
       if (!supabaseUrl || !serviceRoleKey) {
         console.warn('[PATCH /api/soil-analysis/:id/review] Missing service role key, using storage fallback');
         const updated = await storage.updateSoilAnalysisWithComments(id, status, adminComments || "", adminFileUrls || "");
-        return res.json(updated);
+        return res.status(200).json(updated);
       }
 
       const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
@@ -186,17 +186,17 @@ export async function registerRoutes(
         console.error('[PATCH /api/soil-analysis/:id/review] Supabase error:', error);
         // Fallback to local storage if Supabase fails
         const updated = await storage.updateSoilAnalysisWithComments(id, status, adminComments || "", adminFileUrls || "");
-        return res.json(updated);
+        return res.status(200).json(updated);
       }
 
       if (!data || data.length === 0) {
         return res.status(404).json({ error: "Analysis not found" });
       }
 
-      res.json(data[0]);
+      return res.status(200).json(data[0]);
     } catch (error: any) {
       console.error('[PATCH /api/soil-analysis/:id/review] Exception:', error.message);
-      res.status(500).json({ error: error.message || "Failed to update analysis" });
+      return res.status(500).json({ error: error.message || "Failed to update analysis" });
     }
   });
 

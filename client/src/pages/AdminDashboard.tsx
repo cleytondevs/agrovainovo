@@ -419,13 +419,12 @@ const AdminDashboard = () => {
           onDelete={async (id) => {
             const response = await fetch(`/api/soil-analysis/${id}`, { method: 'DELETE' });
             if (!response.ok) {
-              const error = await response.json();
+              const error = await response.json().catch(() => ({ error: 'Erro ao deletar' }));
               throw new Error(error.error || 'Erro ao deletar');
             }
             queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
             toast({ title: "Análise deletada com sucesso" });
             setModalOpen(false);
-            return Promise.resolve();
           }}
         />
       )}
