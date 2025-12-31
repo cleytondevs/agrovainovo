@@ -233,39 +233,6 @@ export default function MyAnalyses() {
                       </div>
                     )}
 
-                    {/* Dados da Análise */}
-                    <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
-                      <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-3">
-                        Dados da Análise
-                      </h3>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-slate-600 dark:text-slate-400">pH</span>
-                          <p className="font-medium text-slate-900 dark:text-slate-100">{analysis.pH}</p>
-                        </div>
-                        <div>
-                          <span className="text-slate-600 dark:text-slate-400">Nitrogênio</span>
-                          <p className="font-medium text-slate-900 dark:text-slate-100">{analysis.nitrogen} ppm</p>
-                        </div>
-                        <div>
-                          <span className="text-slate-600 dark:text-slate-400">Fósforo</span>
-                          <p className="font-medium text-slate-900 dark:text-slate-100">{analysis.phosphorus} ppm</p>
-                        </div>
-                        <div>
-                          <span className="text-slate-600 dark:text-slate-400">Potássio</span>
-                          <p className="font-medium text-slate-900 dark:text-slate-100">{analysis.potassium} ppm</p>
-                        </div>
-                        <div>
-                          <span className="text-slate-600 dark:text-slate-400">Umidade</span>
-                          <p className="font-medium text-slate-900 dark:text-slate-100">{analysis.moisture}%</p>
-                        </div>
-                        <div>
-                          <span className="text-slate-600 dark:text-slate-400">Matéria Orgânica</span>
-                          <p className="font-medium text-slate-900 dark:text-slate-100">{analysis.organicMatter}%</p>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Comentários do Admin */}
                     {analysis.adminComments && (
                       <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
