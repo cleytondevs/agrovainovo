@@ -252,20 +252,29 @@ const AdminDashboard = () => {
   });
 
   const deleteLoginMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(`/api/logins/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
+    mutationFn: async ({ loginId, loginEmail }: { loginId: number; loginEmail: string }) => {
+      // First, delete from logins table
+      const { error: deleteError } = await supabase
+        .from('logins')
+        .delete()
+        .eq('id', loginId);
+      
+      if (deleteError) throw deleteError;
+      
+      // Then, try to delete from Supabase Auth using Edge Function
+      try {
+        const response = await supabase.functions.invoke('delete-auth-user', {
+          body: { email: loginEmail }
+        });
+        
+        if (response.error) {
+          console.warn('Failed to delete from Supabase Auth:', response.error);
+          // Continue anyway - the login record is already deleted
         }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Falha ao deletar login');
+      } catch (error) {
+        console.warn('Edge Function not available, but login deleted from table:', error);
+        // This is okay - the login is already deleted from the table
       }
-      
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
@@ -686,7 +695,7 @@ const AdminDashboard = () => {
                           <Button
                             variant="destructive"
                             size="icon"
-                            onClick={() => deleteLoginMutation.mutate(login.id)}
+                            onClick={() => deleteLoginMutation.mutate({ loginId: login.id, loginEmail: login.email })}
                             disabled={deleteLoginMutation.isPending}
                             data-testid={`button-delete-login-${login.id}`}
                           >
