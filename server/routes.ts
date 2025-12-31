@@ -310,6 +310,30 @@ export async function registerRoutes(
     }
   });
 
+  // Update login (plan and expiration)
+  app.patch('/api/logins/:id/update', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { plan, expiresAt } = req.body;
+      
+      if (!plan || !expiresAt) {
+        return res.status(400).json({ error: "Plan and expiration date are required" });
+      }
+
+      const { error } = await supabase
+        .from('logins')
+        .update({ plan, expires_at: expiresAt })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      res.json({ success: true, message: "Login updated successfully" });
+    } catch (error: any) {
+      console.error('[UPDATE-LOGIN] Exception:', error.message);
+      res.status(500).json({ error: error.message || "Failed to update login" });
+    }
+  });
+
   // Delete login
   app.delete('/api/logins/:id', async (req, res) => {
     try {

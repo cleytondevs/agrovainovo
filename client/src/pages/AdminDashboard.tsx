@@ -48,6 +48,10 @@ const AdminDashboard = () => {
   const [renewalModalOpen, setRenewalModalOpen] = useState(false);
   const [selectedLoginForRenewal, setSelectedLoginForRenewal] = useState<any>(null);
   const [renewalPlan, setRenewalPlan] = useState("1_month");
+  const [editLoginModalOpen, setEditLoginModalOpen] = useState(false);
+  const [selectedLoginForEdit, setSelectedLoginForEdit] = useState<any>(null);
+  const [editPlan, setEditPlan] = useState("1_month");
+  const [editExpiresAt, setEditExpiresAt] = useState("");
   const [activeTab, setActiveTab] = useState("analyses");
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
@@ -198,6 +202,26 @@ const AdminDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
       toast({ title: "Login removido com sucesso!" });
+    },
+  });
+
+  const updateLoginMutation = useMutation({
+    mutationFn: async ({ loginId, plan, expiresAt }: { loginId: number; plan: string; expiresAt: string }) => {
+      const response = await fetch(`/api/logins/${loginId}/update`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, expiresAt })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao atualizar login');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
+      toast({ title: "Login atualizado com sucesso!" });
+      setEditLoginModalOpen(false);
     },
   });
 
@@ -360,7 +384,8 @@ const AdminDashboard = () => {
                         <td className="px-4 py-3">{l.clientName}</td>
                         <td className="px-4 py-3">{l.email}</td>
                         <td className="px-4 py-3"><Badge variant="outline">{l.plan}</Badge></td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => { setSelectedLoginForEdit(l); setEditPlan(l.plan); setEditExpiresAt(l.expires_at?.split('T')[0] || ''); setEditLoginModalOpen(true); }}><Edit2 className="w-4 h-4" /></Button>
                           <Button size="sm" variant="destructive" onClick={() => deleteLoginMutation.mutate({ loginId: l.id })}><Trash2 className="w-4 h-4" /></Button>
                         </td>
                       </tr>
@@ -391,6 +416,38 @@ const AdminDashboard = () => {
           }}
         />
       )}
+
+      <Dialog open={editLoginModalOpen} onOpenChange={setEditLoginModalOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Login</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Plano</label>
+              <Select value={editPlan} onValueChange={setEditPlan}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1_month">1 Mês</SelectItem>
+                  <SelectItem value="3_months">3 Meses</SelectItem>
+                  <SelectItem value="6_months">6 Meses</SelectItem>
+                  <SelectItem value="lifetime">Lifetime</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Data de Expiração</label>
+              <Input type="date" value={editExpiresAt} onChange={(e) => setEditExpiresAt(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditLoginModalOpen(false)}>Cancelar</Button>
+            <Button onClick={() => {
+              if (selectedLoginForEdit) {
+                updateLoginMutation.mutate({ loginId: selectedLoginForEdit.id, plan: editPlan, expiresAt: new Date(editExpiresAt).toISOString() });
+              }
+            }}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
