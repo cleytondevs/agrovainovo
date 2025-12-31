@@ -688,5 +688,41 @@ export async function registerRoutes(
     }
   });
 
+  // Get all authenticated users (from Supabase Auth)
+  app.get('/api/auth-users', async (req, res) => {
+    try {
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+      if (!supabaseUrl || !serviceRoleKey) {
+        console.error('[AUTH-USERS] Missing Supabase configuration');
+        return res.status(500).json({ error: "Supabase not configured" });
+      }
+
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+      
+      // Fetch all users from Supabase Auth
+      const { data: users, error } = await supabaseAdmin.auth.admin.listUsers();
+      
+      if (error) {
+        console.error('[AUTH-USERS] Failed to fetch auth users:', error);
+        throw new Error(`Failed to fetch users: ${error.message}`);
+      }
+
+      // Format users data
+      const formattedUsers = (users?.users || []).map((u: any) => ({
+        id: u.id,
+        email: u.email,
+        createdAt: u.created_at,
+        lastSignInAt: u.last_sign_in_at,
+      }));
+
+      res.json(formattedUsers);
+    } catch (error: any) {
+      console.error('[AUTH-USERS] Exception:', error.message);
+      res.status(500).json({ error: error.message || "Failed to fetch users" });
+    }
+  });
+
   return httpServer;
 }

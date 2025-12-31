@@ -112,15 +112,11 @@ const AdminDashboard = () => {
   });
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery<any[]>({
-    queryKey: ["/api/users/all"],
+    queryKey: ["/api/auth-users"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      return (data || []).map((u: any) => ({
-        ...u,
-        hasAccessed: u.has_accessed,
-        createdAt: u.created_at
-      }));
+      const response = await fetch('/api/auth-users');
+      if (!response.ok) throw new Error('Failed to fetch users');
+      return response.json();
     },
     enabled: isAuthenticated,
   });
@@ -316,10 +312,10 @@ const AdminDashboard = () => {
                   <tbody>
                     {users.map((u) => (
                       <tr key={u.id} className="border-b hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <td className="px-4 py-3">{u.fullName || "-"}</td>
+                        <td className="px-4 py-3">{u.email?.split('@')[0] || "-"}</td>
                         <td className="px-4 py-3">{u.email}</td>
-                        <td className="px-4 py-3">{u.phone || "-"}</td>
-                        <td className="px-4 py-3">{u.occupation || "-"}</td>
+                        <td className="px-4 py-3">-</td>
+                        <td className="px-4 py-3">-</td>
                         <td className="px-4 py-3">{u.createdAt ? new Date(u.createdAt).toLocaleDateString("pt-BR") : "-"}</td>
                       </tr>
                     ))}
