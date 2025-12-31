@@ -174,10 +174,10 @@ export default function Dashboard() {
       
       // Fetch from B3 e fontes de mercado reais via Yahoo Finance
       const commodityMap = {
-        'ZCZ24': { name: "Cacau", unit: "BRL/ton", icon: Droplet, multiplier: 1 },
+        'ZCZ24': { name: "Cacau", unit: "BRL/saca", icon: Droplet, multiplier: 1/20 },
         'ZSZ24': { name: "Soja", unit: "BRL/saca", icon: Wheat, multiplier: 1 },
         'ZMZ24': { name: "Milho", unit: "BRL/saca", icon: Wheat, multiplier: 1 },
-        'KCZ24': { name: "Café", unit: "BRL/ton", icon: Droplet, multiplier: 1 }
+        'KCZ24': { name: "Café", unit: "BRL/saca", icon: Droplet, multiplier: 1/20 }
       };
 
       const commoditiesData = [];
@@ -230,7 +230,7 @@ export default function Dashboard() {
             change = (Math.random() - 0.5) * 0.05;
           }
 
-          const priceInBRL = price * rate;
+          const priceInBRL = price * rate * meta.multiplier;
 
           commoditiesData.push({
             name: meta.name,
@@ -255,10 +255,10 @@ export default function Dashboard() {
       console.error("Commodity prices fetch failed", e);
       const fallbackRate = exchangeRate || 5.0;
       setCommodities([
-        { name: "Cacau", symbol: "ZCZ24", price: 5120 * fallbackRate, unit: "BRL/ton", change: 0.02, icon: Droplet, source: "B3" },
+        { name: "Cacau", symbol: "ZCZ24", price: (5120 * fallbackRate) / 20, unit: "BRL/saca", change: 0.02, icon: Droplet, source: "B3" },
         { name: "Soja", symbol: "ZSZ24", price: 568 * fallbackRate, unit: "BRL/saca", change: -0.01, icon: Wheat, source: "B3" },
         { name: "Milho", symbol: "ZMZ24", price: 278 * fallbackRate, unit: "BRL/saca", change: 0.03, icon: Wheat, source: "B3" },
-        { name: "Café", symbol: "KCZ24", price: 3840 * fallbackRate, unit: "BRL/ton", change: -0.02, icon: Droplet, source: "B3" }
+        { name: "Café", symbol: "KCZ24", price: (3840 * fallbackRate) / 20, unit: "BRL/saca", change: -0.02, icon: Droplet, source: "B3" }
       ]);
     } finally {
       setLoadingCommodities(false);
