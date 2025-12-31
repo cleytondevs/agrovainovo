@@ -179,15 +179,15 @@ const AdminDashboard = () => {
     mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
       const { error } = await supabase.from('soil_analysis').update({
         status: data.status,
-        adminComments: data.adminComments,
-        adminFileUrls: data.adminFileUrls,
-        updatedAt: new Date().toISOString()
+        admin_comments: data.adminComments,
+        admin_file_urls: data.adminFileUrls,
+        updated_at: new Date().toISOString()
       }).eq('id', data.id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
-      toast({ title: "Análise salva com sucesso" });
+      toast({ title: "Análise salva com sucesso e enviada ao cliente" });
       setModalOpen(false);
     },
     onError: () => {
