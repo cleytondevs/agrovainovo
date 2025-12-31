@@ -73,6 +73,9 @@ const AdminDashboard = () => {
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState("1_month");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteDuration, setInviteDuration] = useState("1_month");
+  const [generatedInviteUrl, setGeneratedInviteUrl] = useState("");
 
   // Check admin password on mount
   useEffect(() => {
@@ -284,6 +287,38 @@ const AdminDashboard = () => {
     },
   });
 
+  const createInviteMutation = useMutation({
+    mutationFn: async () => {
+      if (!inviteEmail) {
+        throw new Error("Email é obrigatório");
+      }
+      const response = await fetch('/api/create-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: inviteEmail.trim().toLowerCase(),
+          expiresIn: inviteDuration === '1_month' ? 30 : inviteDuration === '3_months' ? 90 : inviteDuration === '6_months' ? 180 : 36500
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao criar link');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setGeneratedInviteUrl(data.inviteUrl);
+      toast({ title: "Link gerado com sucesso!", description: "Copie o link para enviar ao cliente" });
+      setInviteEmail("");
+      setInviteDuration("1_month");
+    },
+    onError: (error) => {
+      toast({ title: "Erro", description: String(error), variant: "destructive" });
+    },
+  });
+
   const deleteLoginMutation = useMutation({
     mutationFn: async ({ loginId, loginEmail }: { loginId: number; loginEmail: string }) => {
       // First, delete from logins table
@@ -402,7 +437,8 @@ const AdminDashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList>
             <TabsTrigger value="analyses">Análises de Solo</TabsTrigger>
-            <TabsTrigger value="logins">Gerador de Logins</TabsTrigger>
+            <TabsTrigger value="invites">Gerar Links de Convite</TabsTrigger>
+            <TabsTrigger value="logins">Logins Gerados</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analyses" className="space-y-6">
@@ -615,6 +651,72 @@ const AdminDashboard = () => {
                 })
               }
             />
+          </TabsContent>
+
+          <TabsContent value="invites" className="space-y-6">
+            {/* Create Invite Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Gerar Link de Convite</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email do Cliente</label>
+                  <Input
+                    type="email"
+                    placeholder="Ex: cliente@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    data-testid="input-invite-email"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Duração do Link</label>
+                  <Select value={inviteDuration} onValueChange={setInviteDuration}>
+                    <SelectTrigger data-testid="select-invite-duration">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1_month">1 Mês</SelectItem>
+                      <SelectItem value="3_months">3 Meses</SelectItem>
+                      <SelectItem value="6_months">6 Meses</SelectItem>
+                      <SelectItem value="lifetime">Vitalício</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={() => createInviteMutation.mutate()}
+                  disabled={createInviteMutation.isPending}
+                  className="w-full"
+                  data-testid="button-generate-invite"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  {createInviteMutation.isPending ? "Gerando..." : "Gerar Link"}
+                </Button>
+
+                {generatedInviteUrl && (
+                  <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                    <p className="text-sm font-medium mb-2 text-green-900 dark:text-green-100">Link de Convite Gerado:</p>
+                    <div className="flex gap-2 items-center">
+                      <code className="bg-white dark:bg-green-950 px-3 py-2 rounded font-mono text-sm flex-1 break-all">
+                        {generatedInviteUrl}
+                      </code>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedInviteUrl);
+                          toast({ title: "Link copiado!" });
+                        }}
+                        data-testid="button-copy-invite-url"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="logins" className="space-y-6">
