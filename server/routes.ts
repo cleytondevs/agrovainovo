@@ -401,17 +401,45 @@ export async function registerRoutes(
       }
 
       // Generate unique code
-      const code = require('crypto').randomBytes(16).toString("hex");
+      const crypto = require('crypto');
+      const code = crypto.randomBytes(16).toString("hex");
 
       // Set expiration (default 7 days)
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + (expiresIn || 7));
 
-      const invite = await storage.createInviteLink({
-        code,
-        email,
-        expiresAt,
-      });
+      // Try to save to Supabase first, fallback to memory storage
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+
+      let invite = null;
+
+      if (supabaseUrl && supabaseKey) {
+        try {
+          const supabase = createClient(supabaseUrl, supabaseKey);
+          const { data, error } = await supabase
+            .from('invite_links')
+            .insert({
+              code,
+              email: email.trim().toLowerCase(),
+              expires_at: expiresAt.toISOString()
+            })
+            .select();
+
+          if (error) {
+            console.warn('Failed to save invite to Supabase:', error);
+            // Fallback to memory storage
+            invite = await storage.createInviteLink({ code, email, expiresAt });
+          } else {
+            invite = data?.[0];
+          }
+        } catch (supabaseError) {
+          console.warn('Supabase error, falling back to memory:', supabaseError);
+          invite = await storage.createInviteLink({ code, email, expiresAt });
+        }
+      } else {
+        invite = await storage.createInviteLink({ code, email, expiresAt });
+      }
 
       const inviteUrl = `${process.env.VITE_APP_URL || 'http://localhost:5000'}/signup?code=${code}`;
 
