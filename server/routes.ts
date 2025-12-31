@@ -320,6 +320,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Plan and expiration date are required" });
       }
 
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+      
+      if (!supabaseUrl || !serviceRoleKey) {
+        return res.status(500).json({ error: "Supabase not configured" });
+      }
+
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
       const { error } = await supabaseAdmin
         .from('logins')
         .update({ plan, expires_at: expiresAt })

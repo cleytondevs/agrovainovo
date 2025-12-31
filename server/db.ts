@@ -8,6 +8,10 @@ const { Pool } = pg;
 // if the user hasn't set up the local DB yet.
 const dbUrl = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
 
+if (!dbUrl) {
+  console.warn("DATABASE_URL not found, using dummy connection. Storage will fallback to memory if queries fail.");
+}
+
 export const pool = new Pool({ 
   connectionString: dbUrl || "postgres://dummy:dummy@localhost:5432/dummy",
   ssl: dbUrl ? { rejectUnauthorized: false } : false

@@ -41,15 +41,21 @@ async function initializeSupabase() {
   return supabaseClient;
 }
 
-export async function getSupabaseClient(): Promise<ReturnType<typeof createClient> | null> {
-  return initializeSupabase();
+export async function getSupabaseClient(): Promise<ReturnType<typeof createClient>> {
+  const client = await initializeSupabase();
+  if (!client) {
+    throw new Error("Supabase client failed to initialize");
+  }
+  return client;
 }
 
 // Initialize Supabase asynchronously
 export let supabase: ReturnType<typeof createClient>;
 initializeSupabase().then(client => {
-  supabase = client;
-  console.log("Supabase initialized successfully");
+  if (client) {
+    supabase = client;
+    console.log("Supabase initialized successfully");
+  }
 }).catch(err => {
   console.error("Failed to initialize Supabase:", err?.message || JSON.stringify(err));
 });
