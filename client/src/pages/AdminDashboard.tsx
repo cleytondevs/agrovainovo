@@ -128,7 +128,7 @@ const AdminDashboard = () => {
         adminFileUrls: a.admin_file_urls,
         updatedAt: a.updated_at,
         createdAt: a.created_at
-      }));
+      })) as SoilAnalysis[];
     },
     enabled: isAuthenticated,
   });
@@ -163,7 +163,7 @@ const AdminDashboard = () => {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const { error } = await supabase.from('soil_analysis').update({ status }).eq('id', id);
+      const { error } = await supabase.from('soil_analysis').update({ status } as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -182,7 +182,7 @@ const AdminDashboard = () => {
         admin_comments: data.adminComments,
         admin_file_urls: data.adminFileUrls,
         updated_at: new Date().toISOString()
-      }).eq('id', data.id);
+      } as any).eq('id', data.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -315,7 +315,7 @@ const AdminDashboard = () => {
       const newExpiresAt = calculateExpirationDate(renewalPlan);
       const { error } = await supabase
         .from('logins')
-        .update({ expires_at: newExpiresAt })
+        .update({ expires_at: newExpiresAt } as any)
         .eq('id', loginId);
       if (error) throw error;
     },
@@ -528,10 +528,10 @@ const AdminDashboard = () => {
                       <tr key={analysis.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.userEmail}</td>
                         <td className="px-4 py-3 font-medium" data-testid={`text-producer-${analysis.id}`}>
-                          {analysis.producerName || "-"}
+                          {(analysis as any).producerName || "-"}
                         </td>
                         <td className="px-4 py-3 font-medium" data-testid={`text-property-${analysis.id}`}>
-                          {analysis.propertyName || "-"}
+                          {(analysis as any).propertyName || "-"}
                         </td>
                         <td className="px-4 py-3">{analysis.cropType}</td>
                         <td className="px-4 py-3">

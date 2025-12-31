@@ -26,11 +26,12 @@ interface AdminAnalysisModalProps {
 
 export function AdminAnalysisModal({
   open,
-  analysis,
+  analysis: rawAnalysis,
   onClose,
   onSubmit,
   onDelete,
 }: AdminAnalysisModalProps) {
+  const analysis = rawAnalysis as any;
   const { toast } = useToast();
   const [status, setStatus] = useState("pending");
   const [comments, setComments] = useState("");

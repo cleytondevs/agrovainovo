@@ -282,7 +282,7 @@ export default function MyAnalyses() {
                     {/* Data and Delete Button */}
                     <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
                       <p className="text-xs text-slate-500">
-                        Análise de {new Date(analysis.createdAt).toLocaleDateString("pt-BR")}
+                        Análise de {analysis.createdAt ? new Date(analysis.createdAt).toLocaleDateString("pt-BR") : "Data não disponível"}
                       </p>
                       <Button
                         variant="ghost"

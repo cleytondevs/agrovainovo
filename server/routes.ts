@@ -225,7 +225,7 @@ export async function registerRoutes(
       const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
       // Create user in Supabase Auth
-      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: normalizedEmail,
         password: password,
         email_confirm: true,
@@ -236,6 +236,7 @@ export async function registerRoutes(
         throw new Error(`Failed to create Supabase user: ${authError.message}`);
       }
 
+      const authUser = authData.user;
       console.log('[CREATE-LOGIN-WITH-AUTH] Auth user created:', authUser?.id);
 
       // Now insert into logins table
@@ -252,7 +253,9 @@ export async function registerRoutes(
       if (insertError) {
         console.error('[CREATE-LOGIN-WITH-AUTH] Failed to insert login record:', insertError);
         // Try to delete the auth user if we can't insert the login
-        await supabaseAdmin.auth.admin.deleteUser(authUser!.id);
+        if (authUser) {
+          await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+        }
         throw new Error(`Failed to create login record: ${insertError.message}`);
       }
 
