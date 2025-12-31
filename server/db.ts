@@ -19,7 +19,7 @@ let connectionString = dbUrl || "postgres://dummy:dummy@localhost:5432/dummy";
 // Supabase PG URL usually looks like postgres://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
 if (dbUrl?.includes('supabase.co') && !dbUrl?.startsWith('postgres')) {
   const projectRef = dbUrl.split('//')[1].split('.')[0];
-  const password = process.env.SUPABASE_DB_PASSWORD || 'your-password'; // Fallback if password not set
+  const password = process.env.SUPABASE_DB_PASSWORD || process.env.SUPABASE_KEY || ''; 
   connectionString = `postgres://postgres:${password}@db.${projectRef}.supabase.co:5432/postgres`;
 }
 

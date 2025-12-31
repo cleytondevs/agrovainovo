@@ -158,7 +158,7 @@ export async function registerRoutes(
 
       // Update directly in Supabase with admin key (more reliable for admin operations)
       const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
       if (!supabaseUrl || !serviceRoleKey) {
         console.warn('[PATCH /api/soil-analysis/:id/review] Missing service role key, trying anon key');
