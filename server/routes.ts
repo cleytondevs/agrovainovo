@@ -519,6 +519,8 @@ export async function registerRoutes(
       const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
+      let invite = null;
+
       if (!supabaseUrl || !serviceRoleKey) {
         console.warn('Supabase service role config missing for invite creation');
         const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
