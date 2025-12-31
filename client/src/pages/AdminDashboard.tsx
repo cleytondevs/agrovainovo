@@ -128,8 +128,9 @@ const AdminDashboard = () => {
   const { data: logins = [], isLoading: isLoadingLogins } = useQuery<any[]>({
     queryKey: ["/api/logins"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('logins').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
+      const response = await fetch('/api/logins');
+      if (!response.ok) throw new Error('Failed to fetch logins');
+      const data = await response.json();
       return (data || []).map((l: any) => ({
         ...l,
         clientName: l.client_name,
