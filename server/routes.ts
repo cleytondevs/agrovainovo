@@ -156,27 +156,20 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Status is required" });
       }
 
-      // Update directly in Supabase since we're using Supabase as the database
+      // Update directly in Supabase with anon key (clients can update their own analyses)
       const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
+      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
-      if (!supabaseUrl || !supabaseServiceKey) {
-        // Fallback to storage if Supabase not configured
-        const updated = await storage.updateSoilAnalysisWithComments(
-          id,
-          status,
-          adminComments || "",
-          adminFileUrls || ""
-        );
-        return res.json(updated);
+      if (!supabaseUrl || !supabaseAnonKey) {
+        return res.status(500).json({ error: "Supabase not configured" });
       }
 
       const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
-      const supabaseAdmin = createSupabaseClient(supabaseUrl, supabaseServiceKey);
+      const supabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
       const filesArray = adminFileUrls ? adminFileUrls.split(";").filter(f => f.trim()) : [];
       
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await supabaseClient
         .from('soil_analysis')
         .update({
           status: status,
@@ -188,7 +181,8 @@ export async function registerRoutes(
         .select();
 
       if (error) {
-        throw new Error(error.message || "Failed to update analysis");
+        console.error('[PATCH /api/soil-analysis/:id/review] Error:', error);
+        return res.status(400).json({ error: error.message || "Failed to update analysis" });
       }
 
       if (!data || data.length === 0) {
@@ -197,6 +191,7 @@ export async function registerRoutes(
 
       res.json(data[0]);
     } catch (error: any) {
+      console.error('[PATCH /api/soil-analysis/:id/review] Exception:', error.message);
       res.status(500).json({ error: error.message || "Failed to update analysis" });
     }
   });
