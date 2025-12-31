@@ -41,7 +41,7 @@ async function initializeSupabase() {
   return supabaseClient;
 }
 
-export async function getSupabaseClient() {
+export async function getSupabaseClient(): Promise<ReturnType<typeof createClient> | null> {
   return initializeSupabase();
 }
 

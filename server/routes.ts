@@ -167,7 +167,7 @@ export async function registerRoutes(
       const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
       const supabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
-      const filesArray = adminFileUrls ? adminFileUrls.split(";").filter(f => f.trim()) : [];
+      const filesArray = adminFileUrls ? adminFileUrls.split(";").filter((f: string) => f.trim()) : [];
       
       const { data, error } = await supabaseClient
         .from('soil_analysis')
@@ -320,7 +320,7 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Plan and expiration date are required" });
       }
 
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('logins')
         .update({ plan, expires_at: expiresAt })
         .eq('id', id);
