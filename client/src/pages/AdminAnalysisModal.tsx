@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, FileUp, Download, CheckCircle } from "lucide-react";
+import { Loader2, FileUp, Download, CheckCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import type { SoilAnalysis } from "@shared/schema";
@@ -21,6 +21,7 @@ interface AdminAnalysisModalProps {
     adminComments: string;
     adminFileUrls: string;
   }) => Promise<void>;
+  onDelete?: (id: number) => Promise<void>;
 }
 
 export function AdminAnalysisModal({
@@ -28,6 +29,7 @@ export function AdminAnalysisModal({
   analysis,
   onClose,
   onSubmit,
+  onDelete,
 }: AdminAnalysisModalProps) {
   const { toast } = useToast();
   const [status, setStatus] = useState("pending");
@@ -36,6 +38,7 @@ export function AdminAnalysisModal({
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDownloadPdf = async () => {
     if (!analysis?.soil_analysis_pdf) {
@@ -117,6 +120,27 @@ export function AdminAnalysisModal({
       toast({ variant: "destructive", title: "Erro", description: "Falha ao salvar análise" });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!analysis || !onDelete) return;
+    
+    const confirmed = window.confirm(
+      "Tem certeza que deseja deletar esta análise? Esta ação não pode ser desfeita."
+    );
+    
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await onDelete(analysis.id);
+      toast({ title: "Análise deletada", description: "A análise foi removida com sucesso" });
+      onClose();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao deletar análise" });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -352,10 +376,23 @@ export function AdminAnalysisModal({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isLoading} data-testid="button-cancel-analysis">
+          {onDelete && (
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete} 
+              disabled={isLoading || isDeleting}
+              className="mr-auto"
+              data-testid="button-delete-analysis"
+            >
+              {isDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              <Trash2 className="w-4 h-4 mr-2" />
+              Deletar Análise
+            </Button>
+          )}
+          <Button variant="outline" onClick={onClose} disabled={isLoading || isDeleting} data-testid="button-cancel-analysis">
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading} data-testid="button-save-analysis">
+          <Button onClick={handleSubmit} disabled={isLoading || isDeleting} data-testid="button-save-analysis">
             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Salvar Análise
           </Button>

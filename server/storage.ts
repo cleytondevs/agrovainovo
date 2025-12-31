@@ -10,6 +10,7 @@ export interface IStorage {
   getUserSoilAnalysis(userEmail: string): Promise<SoilAnalysis[]>;
   updateSoilAnalysisStatus(id: number, status: string): Promise<SoilAnalysis>;
   updateSoilAnalysisWithComments(id: number, status: string, adminComments: string, adminFileUrls: string): Promise<SoilAnalysis>;
+  deleteSoilAnalysis(id: number): Promise<void>;
   getAllUsers(): Promise<User[]>;
   createLogin(login: InsertLogin): Promise<Login>;
   getAllLogins(): Promise<Login[]>;
@@ -150,6 +151,15 @@ export class MemStorage implements IStorage {
     } catch (error) {
       console.warn("Failed to delete login from database, using memory storage", error);
       this.logins.delete(id);
+    }
+  }
+
+  async deleteSoilAnalysis(id: number): Promise<void> {
+    try {
+      await dbClient.deleteSoilAnalysis(id);
+    } catch (error) {
+      console.warn("Failed to delete analysis from database, using memory storage", error);
+      this.soilAnalyses.delete(id);
     }
   }
 }

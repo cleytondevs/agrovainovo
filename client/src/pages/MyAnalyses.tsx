@@ -4,7 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LogOut, FileText, Clock, CheckCircle2, XCircle, Loader2, Download } from "lucide-react";
+import { LogOut, FileText, Clock, CheckCircle2, XCircle, Loader2, Download, Trash2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import type { SoilAnalysis } from "@shared/schema";
@@ -65,6 +67,29 @@ export default function MyAnalyses() {
     setUser(null);
     setLocation("/");
     toast({ title: "Desconectado com sucesso" });
+  };
+
+  const deleteAnalysisMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase.from('soil_analysis').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/user", user?.email] });
+      toast({ title: "Análise deletada", description: "A análise foi removida com sucesso" });
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao deletar análise" });
+    },
+  });
+
+  const handleDeleteAnalysis = (id: number) => {
+    const confirmed = window.confirm(
+      "Tem certeza que deseja deletar esta análise? Esta ação não pode ser desfeita."
+    );
+    if (confirmed) {
+      deleteAnalysisMutation.mutate(id);
+    }
   };
 
   const handleDownloadFile = async (fileName: string) => {
@@ -254,10 +279,26 @@ export default function MyAnalyses() {
                       </div>
                     )}
 
-                    {/* Data */}
-                    <p className="text-xs text-slate-500">
-                      Análise de {new Date(analysis.createdAt).toLocaleDateString("pt-BR")}
-                    </p>
+                    {/* Data and Delete Button */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                      <p className="text-xs text-slate-500">
+                        Análise de {new Date(analysis.createdAt).toLocaleDateString("pt-BR")}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                        onClick={() => handleDeleteAnalysis(analysis.id)}
+                        disabled={deleteAnalysisMutation.isPending}
+                        data-testid={`button-delete-analysis-${analysis.id}`}
+                      >
+                        {deleteAnalysisMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );

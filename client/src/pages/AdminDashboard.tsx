@@ -195,6 +195,21 @@ const AdminDashboard = () => {
     },
   });
 
+  const deleteAnalysisMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase.from('soil_analysis').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
+      toast({ title: "Análise deletada com sucesso" });
+      setModalOpen(false);
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao deletar análise" });
+    },
+  });
+
   const createLoginMutation = useMutation({
     mutationFn: async () => {
       if (!email) {

@@ -79,3 +79,7 @@ export async function getLoginById(id: number): Promise<Login | null> {
 export async function deleteLogin(id: number): Promise<void> {
   await db.delete(logins).where(eq(logins.id, id));
 }
+
+export async function deleteSoilAnalysis(id: number): Promise<void> {
+  await db.delete(soilAnalysis).where(eq(soilAnalysis.id, id));
+}

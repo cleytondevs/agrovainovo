@@ -167,6 +167,17 @@ export async function registerRoutes(
     }
   });
 
+  // Delete soil analysis
+  app.delete('/api/soil-analysis/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteSoilAnalysis(id);
+      res.json({ success: true, message: "Análise deletada com sucesso" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete analysis" });
+    }
+  });
+
   // Get all users (admin only)
   app.get('/api/users/all', async (req, res) => {
     try {
