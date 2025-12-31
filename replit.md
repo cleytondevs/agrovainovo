@@ -97,8 +97,9 @@ shared/           # Shared between client/server
 ## Integration Status
 
 ### GitHub
-- **Status**: Not connected (user declined Replit integration setup)
-- **Note**: If needed in the future, can set up via Replit's GitHub connector or provide personal access token as secret
+- **Status**: User requested connection to GitHub
+- **Repository**: https://github.com/cleytondevs/agrovainovo.git
+- **Note**: Replit restricts direct git operations via CLI. User needs to complete git setup through Replit's Git pane or by connecting through the GitHub integration in Replit settings
 
 ## Authentication Architecture
 
