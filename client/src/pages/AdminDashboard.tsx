@@ -151,11 +151,22 @@ const AdminDashboard = () => {
           adminFileUrls: data.adminFileUrls
         })
       });
+      
+      const contentType = response.headers.get("content-type");
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao atualizar análise');
+        if (contentType && contentType.includes("application/json")) {
+          const error = await response.json();
+          throw new Error(error.error || 'Erro ao atualizar análise');
+        } else {
+          const text = await response.text();
+          throw new Error(text || 'Erro interno do servidor');
+        }
       }
-      return response.json();
+      
+      if (contentType && contentType.includes("application/json")) {
+        return response.json();
+      }
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });

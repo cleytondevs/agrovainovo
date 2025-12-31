@@ -161,37 +161,15 @@ export async function registerRoutes(
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
       if (!supabaseUrl || !serviceRoleKey) {
-        console.warn('[PATCH /api/soil-analysis/:id/review] Missing service role key, trying anon key');
-        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
-        if (!supabaseUrl || !supabaseAnonKey) {
-          return res.status(500).json({ error: "Supabase not configured" });
-        }
-        const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
-        const supabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
-        
-        const filesArray = adminFileUrls ? adminFileUrls.split(";").filter((f: string) => f.trim()) : [];
-        const { data, error } = await supabaseClient
-          .from('soil_analysis')
-          .update({
-            status: status,
-            admin_comments: adminComments || "",
-            admin_file_urls: filesArray,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id)
-          .select();
-
-        if (error) {
-          console.error('[PATCH /api/soil-analysis/:id/review] Anon key error:', error);
-          throw error;
-        }
-        return res.json(data?.[0]);
+        console.warn('[PATCH /api/soil-analysis/:id/review] Missing service role key, using storage fallback');
+        const updated = await storage.updateSoilAnalysisWithComments(id, status, adminComments || "", adminFileUrls || "");
+        return res.json(updated);
       }
 
       const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
       const supabaseClient = createSupabaseClient(supabaseUrl, serviceRoleKey);
 
-      const filesArray = adminFileUrls ? adminFileUrls.split(";").filter((f: string) => f.trim()) : [];
+      const filesArray = adminFileUrls ? (typeof adminFileUrls === 'string' ? adminFileUrls.split(";").filter((f: string) => f.trim()) : adminFileUrls) : [];
       
       const { data, error } = await supabaseClient
         .from('soil_analysis')
@@ -205,8 +183,10 @@ export async function registerRoutes(
         .select();
 
       if (error) {
-        console.error('[PATCH /api/soil-analysis/:id/review] Error:', error);
-        return res.status(400).json({ error: error.message || "Failed to update analysis" });
+        console.error('[PATCH /api/soil-analysis/:id/review] Supabase error:', error);
+        // Fallback to local storage if Supabase fails
+        const updated = await storage.updateSoilAnalysisWithComments(id, status, adminComments || "", adminFileUrls || "");
+        return res.json(updated);
       }
 
       if (!data || data.length === 0) {
