@@ -71,6 +71,11 @@ export async function getAllLogins(): Promise<Login[]> {
   return await db.select().from(logins);
 }
 
+export async function getLoginById(id: number): Promise<Login | null> {
+  const result = await db.select().from(logins).where(eq(logins.id, id)).limit(1);
+  return result[0] || null;
+}
+
 export async function deleteLogin(id: number): Promise<void> {
   await db.delete(logins).where(eq(logins.id, id));
 }

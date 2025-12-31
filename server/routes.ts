@@ -3,7 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { createAccessLink, checkAccessLink, decrementAccessLink } from "./db-client";
+import { createAccessLink, checkAccessLink, decrementAccessLink, getLoginById } from "./db-client";
 import { insertSoilAnalysisSchema, insertLoginSchema } from "@shared/schema";
 import { createClient } from "@supabase/supabase-js";
 
@@ -271,6 +271,40 @@ export async function registerRoutes(
   app.delete('/api/logins/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // Get the login to retrieve email before deletion
+      const login = await getLoginById(id);
+      if (!login || !login.email) {
+        return res.status(404).json({ error: "Login not found" });
+      }
+
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+      // Delete from Supabase Auth if credentials are available
+      if (supabaseUrl && serviceRoleKey) {
+        try {
+          const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+          const normalizedEmail = login.email.trim().toLowerCase();
+          
+          // List users to find the one with this email
+          const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+          
+          if (!listError && users) {
+            const user = users.users.find(u => u.email?.toLowerCase() === normalizedEmail);
+            if (user) {
+              // Delete the user from Supabase Auth
+              await supabaseAdmin.auth.admin.deleteUser(user.id);
+              console.log('[DELETE-LOGIN] Deleted user from Supabase Auth:', normalizedEmail);
+            }
+          }
+        } catch (authError: any) {
+          console.error('[DELETE-LOGIN] Failed to delete from Supabase Auth:', authError);
+          // Continue with deletion even if Supabase Auth deletion fails
+        }
+      }
+
+      // Delete from logins table
       await storage.deleteLogin(id);
       res.json({ success: true });
     } catch (error: any) {
