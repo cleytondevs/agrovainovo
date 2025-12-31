@@ -1,0 +1,38 @@
+chunk-LPF6KSF2.js?v=f5ba4d59:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+supabaseClient.ts:12 [Supabase Init] Checking environment variables: Object
+supabaseClient.ts:37 [Supabase Init] Successfully obtained credentials, creating client
+supabaseClient.ts:59 Supabase initialized successfully
+ Refused to execute inline script because it violates the following Content Security Policy directive: "script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' chrome-extension://75dee662-bdbf-489d-87e5-ac9540241382/". Either the 'unsafe-inline' keyword, a hash ('sha256-kPx0AsF0oz2kKiZ875xSvv693TBHkQ/0SkMJZnnNpnQ='), or a nonce ('nonce-...') is required to enable inline execution.
+
+(anonymous) @ chrome-extension://a…j/includes/tab.js:1
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+(index):1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZCZ24?modules=price' from origin 'https://9bc5feff-1602-443b-8bc9-fc05924a325b-00-1h1nyq8vdgr46.janeway.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZCZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+Dashboard.tsx:248 Failed to fetch ZCZ24 TypeError: Failed to fetch
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+fetchCommodityPrices @ Dashboard.tsx:248
+(index):1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZSZ24?modules=price' from origin 'https://9bc5feff-1602-443b-8bc9-fc05924a325b-00-1h1nyq8vdgr46.janeway.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZSZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+Dashboard.tsx:248 Failed to fetch ZSZ24 TypeError: Failed to fetch
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+fetchCommodityPrices @ Dashboard.tsx:248
+(index):1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZMZ24?modules=price' from origin 'https://9bc5feff-1602-443b-8bc9-fc05924a325b-00-1h1nyq8vdgr46.janeway.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZMZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+Dashboard.tsx:248 Failed to fetch ZMZ24 TypeError: Failed to fetch
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+fetchCommodityPrices @ Dashboard.tsx:248
+(index):1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/KCZ24?modules=price' from origin 'https://9bc5feff-1602-443b-8bc9-fc05924a325b-00-1h1nyq8vdgr46.janeway.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/KCZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+Dashboard.tsx:248 Failed to fetch KCZ24 TypeError: Failed to fetch
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+fetchCommodityPrices @ Dashboard.tsx:248
+Dashboard.tsx:258 Commodity prices fetch failed Error: Could not fetch commodity prices
+    at fetchCommodityPrices (Dashboard.tsx:253:15)
+fetchCommodityPrices @ Dashboard.tsx:258
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?columns=%22field_name%22%2C%22crop_type%22%2C%22producer_name%22%2C%22producer_contact%22%2C%22producer_address%22%2C%22property_name%22%2C%22city%22%2C%22crop_age%22%2C%22production_type%22%2C%22spacing%22%2C%22area%22%2C%22sample_depth%22%2C%22collected_by%22%2C%22moon_phase%22%2C%22relative_humidity%22%2C%22precipitation%22%2C%22notes%22%2C%22soil_analysis_pdf%22%2C%22attachments%22%2C%22user_email%22%2C%22status%22:1  Failed to load resource: the server responded with a status of 400 ()
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?columns=%22field_name%22%2C%22crop_type%22%2C%22producer_name%22%2C%22producer_contact%22%2C%22producer_address%22%2C%22property_name%22%2C%22city%22%2C%22crop_age%22%2C%22production_type%22%2C%22spacing%22%2C%22area%22%2C%22sample_depth%22%2C%22collected_by%22%2C%22moon_phase%22%2C%22relative_humidity%22%2C%22precipitation%22%2C%22notes%22%2C%22soil_analysis_pdf%22%2C%22attachments%22%2C%22user_email%22%2C%22status%22:1  Failed to load resource: the server responded with a status of 400 ()
