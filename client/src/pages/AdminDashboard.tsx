@@ -143,7 +143,7 @@ const AdminDashboard = () => {
   const submitAnalysisMutation = useMutation({
     mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
       const response = await fetch(`/api/soil-analysis/${data.id}/review`, {
-        method: 'PATCH',
+        method: 'POST', // Changed from PATCH to POST for better Netlify compatibility
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: data.status,
@@ -416,8 +416,8 @@ const AdminDashboard = () => {
           onClose={() => setModalOpen(false)}
           analysis={selectedAnalysis}
           onSubmit={(data) => submitAnalysisMutation.mutate({ id: selectedAnalysis.id, ...data })}
-          onDelete={async (id) => {
-            const response = await fetch(`/api/soil-analysis/${id}`, { method: 'DELETE' });
+          onDelete={async (id: number) => {
+            const response = await fetch(`/api/soil-analysis/${id}/delete`, { method: 'POST' });
             if (!response.ok) {
               const error = await response.json().catch(() => ({ error: 'Erro ao deletar' }));
               throw new Error(error.error || 'Erro ao deletar');

@@ -147,7 +147,7 @@ export async function registerRoutes(
   });
 
   // Update soil analysis with comments and files
-  app.patch('/api/soil-analysis/:id/review', async (req, res) => {
+  app.post('/api/soil-analysis/:id/review', async (req, res) => {
     try {
       const { status, adminComments, adminFileUrls } = req.body;
       const id = parseInt(req.params.id);
@@ -161,7 +161,7 @@ export async function registerRoutes(
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
       if (!supabaseUrl || !serviceRoleKey) {
-        console.warn('[PATCH /api/soil-analysis/:id/review] Missing service role key, using storage fallback');
+        console.warn('[POST /api/soil-analysis/:id/review] Missing service role key, using storage fallback');
         const updated = await storage.updateSoilAnalysisWithComments(id, status, adminComments || "", adminFileUrls || "");
         return res.status(200).json(updated);
       }
@@ -183,7 +183,7 @@ export async function registerRoutes(
         .select();
 
       if (error) {
-        console.error('[PATCH /api/soil-analysis/:id/review] Supabase error:', error);
+        console.error('[POST /api/soil-analysis/:id/review] Supabase error:', error);
         // Fallback to local storage if Supabase fails
         const updated = await storage.updateSoilAnalysisWithComments(id, status, adminComments || "", adminFileUrls || "");
         return res.status(200).json(updated);
@@ -195,12 +195,31 @@ export async function registerRoutes(
 
       return res.status(200).json(data[0]);
     } catch (error: any) {
-      console.error('[PATCH /api/soil-analysis/:id/review] Exception:', error.message);
+      console.error('[POST /api/soil-analysis/:id/review] Exception:', error.message);
       return res.status(500).json({ error: error.message || "Failed to update analysis" });
     }
   });
 
+  // Keep patch for compatibility but prefer POST
+  app.patch('/api/soil-analysis/:id/review', async (req, res) => {
+    // Forward to the post handler logic
+    const postHandler = app._router.stack.find((s: any) => s.route && s.route.path === '/api/soil-analysis/:id/review' && s.route.methods.post);
+    if (postHandler) return postHandler.handle(req, res);
+    res.status(405).send('Method Not Allowed');
+  });
+
   // Delete soil analysis
+  app.post('/api/soil-analysis/:id/delete', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteSoilAnalysis(id);
+      res.json({ success: true, message: "Análise deletada com sucesso" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete analysis" });
+    }
+  });
+
+  // Keep delete for compatibility
   app.delete('/api/soil-analysis/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
