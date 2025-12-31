@@ -29,10 +29,12 @@ import {
   Newspaper,
   ExternalLink,
   Droplet,
-  Wheat
+  Wheat,
+  Download
 } from "lucide-react";
 import SoilAnalysis from "./SoilAnalysis";
 import SoilMaterials from "./SoilMaterials";
+import { CommodityImage } from "@/components/CommodityImage";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -99,6 +101,7 @@ export default function Dashboard() {
   const [commodities, setCommodities] = useState<any[]>([]);
   const [loadingCommodities, setLoadingCommodities] = useState(false);
   const [exchangeRate, setExchangeRate] = useState<number>(5.0);
+  const [showImageModal, setShowImageModal] = useState(false);
   const CALENDAR_YEAR = 2026;
 
   const loginForm = useForm<LoginFormValues>({
@@ -637,7 +640,21 @@ export default function Dashboard() {
                       <TrendingUp className="h-6 w-6 text-primary" />
                       <h2 className="text-xl font-bold text-secondary">Preços de Commodities</h2>
                     </div>
-                    {loadingCommodities && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                    <div className="flex items-center gap-2">
+                      {loadingCommodities && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                      {commodities.length > 0 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowImageModal(true)}
+                          className="gap-2"
+                          data-testid="button-download-commodities"
+                        >
+                          <Download className="h-4 w-4" />
+                          Baixar
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {commodities.map((commodity, i) => {
@@ -824,6 +841,12 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+
+      <CommodityImage
+        commodities={commodities}
+        isOpen={showImageModal}
+        onClose={() => setShowImageModal(false)}
+      />
     </div>
   );
 }
