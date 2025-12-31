@@ -6,10 +6,11 @@ const { Pool } = pg;
 
 // We allow starting without DATABASE_URL for Supabase-only apps to prevent crash loops
 // if the user hasn't set up the local DB yet.
-const dbUrl = process.env.DATABASE_URL;
+const dbUrl = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
 
 export const pool = new Pool({ 
-  connectionString: dbUrl || "postgres://dummy:dummy@localhost:5432/dummy" 
+  connectionString: dbUrl || "postgres://dummy:dummy@localhost:5432/dummy",
+  ssl: dbUrl ? { rejectUnauthorized: false } : false
 });
 
 // We verify connection lazily or just handle errors in storage

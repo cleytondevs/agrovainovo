@@ -6,8 +6,8 @@ async function initializeSupabase() {
   if (supabaseClient) return supabaseClient;
 
   // No Netlify, as variáveis de ambiente VITE_ devem ser configuradas nas variáveis de build
-  let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  let supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
   console.log('[Supabase Init] Checking environment variables:', {
     hasUrlFromEnv: !!supabaseUrl,
@@ -21,10 +21,6 @@ async function initializeSupabase() {
       const response = await fetch('/api/config');
       if (response.ok) {
         const config = await response.json();
-        console.log('[Supabase Init] Config from backend:', {
-          hasUrl: !!config.supabaseUrl,
-          hasKey: !!config.supabaseAnonKey
-        });
         supabaseUrl = config.supabaseUrl || supabaseUrl;
         supabaseAnonKey = config.supabaseAnonKey || supabaseAnonKey;
       }
@@ -37,12 +33,9 @@ async function initializeSupabase() {
     console.log('[Supabase Init] Successfully obtained credentials, creating client');
     supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
   } else {
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const errorMsg = isLocal 
-      ? "Supabase URL and Key são necessários. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no seu arquivo .env"
-      : "Erro de Configuração: Configure VITE_SUPABASE_URL e SUPABASE_ANON_KEY no Netlify como variáveis de ambiente.";
-    console.error('[Supabase Init] Missing configuration:', errorMsg);
-    throw new Error(errorMsg);
+    // Força um cliente "fake" ou nulo se não houver credenciais para evitar crash imediato
+    console.warn('[Supabase Init] Supabase credentials not found. Auth will not work.');
+    return null;
   }
 
   return supabaseClient;
