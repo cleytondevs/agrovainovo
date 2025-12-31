@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Beaker, Send } from "lucide-react";
+import { Loader2, Beaker, Send, Upload } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 const CROP_TYPES = [
@@ -28,9 +28,45 @@ const CROP_TYPES = [
   "Outro",
 ];
 
+const CROP_AGES = [
+  "Até 1 ano",
+  "1 a 2 anos",
+  "2 a 5 anos",
+  "5 a 10 anos",
+  "Mais de 10 anos",
+];
+
+const CROP_TYPES_PRODUCTION = [
+  "Em produção",
+  "Em crescimento",
+  "A ser implantada",
+];
+
+const SAMPLE_DEPTHS = [
+  "0-20cm",
+  "20-40cm",
+  "0-40cm",
+];
+
+const COLLECTION_BY = [
+  "Proprietário",
+  "Técnico",
+];
+
 const soilAnalysisSchema = z.object({
-  fieldName: z.string().min(1, "Nome do campo é obrigatório"),
+  producerName: z.string().min(1, "Nome do produtor é obrigatório"),
+  producerContact: z.string().min(1, "Contato do produtor é obrigatório"),
+  producerAddress: z.string().min(1, "Endereço é obrigatório"),
+  propertyName: z.string().min(1, "Nome da propriedade é obrigatório"),
+  city: z.string().min(1, "Cidade é obrigatória"),
   cropType: z.string().min(1, "Tipo de cultura é obrigatório"),
+  cropAge: z.string().min(1, "Idade da cultura é obrigatória"),
+  productionType: z.string().min(1, "Tipo de lavoura é obrigatório"),
+  spacing: z.string().optional(),
+  area: z.string().min(1, "Área/hectare é obrigatória"),
+  sampleDepth: z.string().min(1, "Profundidade da amostra é obrigatória"),
+  collectedBy: z.string().min(1, "Informação sobre coleta é obrigatória"),
+  fieldName: z.string().min(1, "Nome do campo é obrigatório"),
   pH: z.string().refine((val) => !val || (parseFloat(val) >= 0 && parseFloat(val) <= 14), "pH deve estar entre 0 e 14"),
   nitrogen: z.string().refine((val) => !val || parseFloat(val) >= 0, "Nitrogênio deve ser positivo"),
   phosphorus: z.string().refine((val) => !val || parseFloat(val) >= 0, "Fósforo deve ser positivo"),
@@ -49,12 +85,24 @@ interface SoilAnalysisProps {
 export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
 
   const form = useForm<SoilAnalysisFormValues>({
     resolver: zodResolver(soilAnalysisSchema),
     defaultValues: {
-      fieldName: "",
+      producerName: "",
+      producerContact: "",
+      producerAddress: "",
+      propertyName: "",
+      city: "",
       cropType: "",
+      cropAge: "",
+      productionType: "",
+      spacing: "",
+      area: "",
+      sampleDepth: "",
+      collectedBy: "",
+      fieldName: "",
       pH: "",
       nitrogen: "",
       phosphorus: "",
@@ -65,31 +113,60 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
     },
   });
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Por favor, envie um arquivo PDF.",
+      });
+      return;
+    }
+
+    try {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('soil-analysis-pdfs')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      setUploadedFile(fileName);
+      toast({
+        title: "PDF enviado",
+        description: "O arquivo foi enviado com sucesso.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro no upload",
+        description: error.message || "Falha ao enviar PDF.",
+      });
+    }
+  };
+
   const onSubmit = async (data: SoilAnalysisFormValues) => {
     setIsSubmitting(true);
     try {
-      // Prepare the analysis data (keep as strings for validation)
-      const analysisData = {
-        fieldName: data.fieldName,
-        cropType: data.cropType,
-        pH: data.pH || "",
-        nitrogen: data.nitrogen || "",
-        phosphorus: data.phosphorus || "",
-        potassium: data.potassium || "",
-        moisture: data.moisture || "",
-        organicMatter: data.organicMatter || "",
-        notes: data.notes || "",
-        userEmail,
-        status: "pending",
-      };
-
-      // No Netlify, o backend Express não está disponível.
-      // Salvamos diretamente no Supabase para garantir persistência.
       const { data: insertedData, error: sbError } = await supabase
         .from('soil_analysis')
         .insert([{
           field_name: data.fieldName,
           crop_type: data.cropType,
+          producer_name: data.producerName,
+          producer_contact: data.producerContact,
+          producer_address: data.producerAddress,
+          property_name: data.propertyName,
+          city: data.city,
+          crop_age: data.cropAge,
+          production_type: data.productionType,
+          spacing: data.spacing || "",
+          area: data.area,
+          sample_depth: data.sampleDepth,
+          collected_by: data.collectedBy,
           pH: data.pH || null,
           nitrogen: data.nitrogen || null,
           phosphorus: data.phosphorus || null,
@@ -97,6 +174,7 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
           moisture: data.moisture || null,
           organic_matter: data.organicMatter || null,
           notes: data.notes || "",
+          soil_analysis_pdf: uploadedFile || "",
           user_email: userEmail,
           status: "pending"
         }]);
@@ -109,6 +187,7 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
       });
 
       form.reset();
+      setUploadedFile(null);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -138,132 +217,334 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Field Name and Crop Type */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fieldName" className="font-semibold">Nome do Campo*</Label>
-                  <Input
-                    id="fieldName"
-                    placeholder="Ex: Talhão A - Zona 1"
-                    data-testid="input-fieldName"
-                    {...form.register("fieldName")}
-                  />
-                  {form.formState.errors.fieldName && (
-                    <p className="text-sm text-red-600">{form.formState.errors.fieldName.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cropType" className="font-semibold">Tipo de Cultura*</Label>
-                  <Select value={form.watch("cropType")} onValueChange={(value) => form.setValue("cropType", value)}>
-                    <SelectTrigger id="cropType" data-testid="select-cropType">
-                      <SelectValue placeholder="Selecione a cultura" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CROP_TYPES.map((crop) => (
-                        <SelectItem key={crop} value={crop}>
-                          {crop}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.formState.errors.cropType && (
-                    <p className="text-sm text-red-600">{form.formState.errors.cropType.message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* pH Level */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="pH" className="font-semibold">pH do Solo</Label>
-                  <Input
-                    id="pH"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="14"
-                    placeholder="Ex: 6.5"
-                    data-testid="input-pH"
-                    {...form.register("pH")}
-                  />
-                  {form.formState.errors.pH && (
-                    <p className="text-sm text-red-600">{form.formState.errors.pH.message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* NPK Nutrients */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-green-700 flex items-center gap-2">
+              {/* Dados do Produtor */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-green-700 text-lg flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  Macronutrientes (mg/dm³)
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nitrogen">Nitrogênio (N)</Label>
-                    <Input
-                      id="nitrogen"
-                      type="number"
-                      step="0.01"
-                      placeholder="mg/dm³"
-                      data-testid="input-nitrogen"
-                      {...form.register("nitrogen")}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phosphorus">Fósforo (P)</Label>
-                    <Input
-                      id="phosphorus"
-                      type="number"
-                      step="0.01"
-                      placeholder="mg/dm³"
-                      data-testid="input-phosphorus"
-                      {...form.register("phosphorus")}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="potassium">Potássio (K)</Label>
-                    <Input
-                      id="potassium"
-                      type="number"
-                      step="0.01"
-                      placeholder="mg/dm³"
-                      data-testid="input-potassium"
-                      {...form.register("potassium")}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Moisture and Organic Matter */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-amber-700 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-600 rounded-full"></div>
-                  Propriedades Físico-Químicas
+                  Dados do Produtor
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="moisture">Umidade (%)</Label>
+                    <Label htmlFor="producerName" className="font-semibold">Nome*</Label>
                     <Input
-                      id="moisture"
-                      type="number"
-                      step="0.1"
-                      placeholder="0-100%"
-                      data-testid="input-moisture"
-                      {...form.register("moisture")}
+                      id="producerName"
+                      placeholder="Nome do produtor"
+                      data-testid="input-producerName"
+                      {...form.register("producerName")}
+                    />
+                    {form.formState.errors.producerName && (
+                      <p className="text-sm text-red-600">{form.formState.errors.producerName.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="producerContact" className="font-semibold">Contato*</Label>
+                    <Input
+                      id="producerContact"
+                      placeholder="Telefone ou email"
+                      data-testid="input-producerContact"
+                      {...form.register("producerContact")}
+                    />
+                    {form.formState.errors.producerContact && (
+                      <p className="text-sm text-red-600">{form.formState.errors.producerContact.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="producerAddress" className="font-semibold">Endereço*</Label>
+                    <Input
+                      id="producerAddress"
+                      placeholder="Endereço completo"
+                      data-testid="input-producerAddress"
+                      {...form.register("producerAddress")}
+                    />
+                    {form.formState.errors.producerAddress && (
+                      <p className="text-sm text-red-600">{form.formState.errors.producerAddress.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="propertyName" className="font-semibold">Propriedade*</Label>
+                    <Input
+                      id="propertyName"
+                      placeholder="Nome da propriedade"
+                      data-testid="input-propertyName"
+                      {...form.register("propertyName")}
+                    />
+                    {form.formState.errors.propertyName && (
+                      <p className="text-sm text-red-600">{form.formState.errors.propertyName.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city" className="font-semibold">Cidade*</Label>
+                    <Input
+                      id="city"
+                      placeholder="Cidade"
+                      data-testid="input-city"
+                      {...form.register("city")}
+                    />
+                    {form.formState.errors.city && (
+                      <p className="text-sm text-red-600">{form.formState.errors.city.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Informações de Coleta */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-blue-700 text-lg flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  Informações de Coleta
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cropType" className="font-semibold">Cultura*</Label>
+                    <Select value={form.watch("cropType")} onValueChange={(value) => form.setValue("cropType", value)}>
+                      <SelectTrigger id="cropType" data-testid="select-cropType">
+                        <SelectValue placeholder="Selecione a cultura" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CROP_TYPES.map((crop) => (
+                          <SelectItem key={crop} value={crop}>
+                            {crop}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.cropType && (
+                      <p className="text-sm text-red-600">{form.formState.errors.cropType.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cropAge" className="font-semibold">Idade*</Label>
+                    <Select value={form.watch("cropAge")} onValueChange={(value) => form.setValue("cropAge", value)}>
+                      <SelectTrigger id="cropAge" data-testid="select-cropAge">
+                        <SelectValue placeholder="Selecione a idade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CROP_AGES.map((age) => (
+                          <SelectItem key={age} value={age}>
+                            {age}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.cropAge && (
+                      <p className="text-sm text-red-600">{form.formState.errors.cropAge.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="productionType" className="font-semibold">Tipo de Lavoura*</Label>
+                    <Select value={form.watch("productionType")} onValueChange={(value) => form.setValue("productionType", value)}>
+                      <SelectTrigger id="productionType" data-testid="select-productionType">
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CROP_TYPES_PRODUCTION.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.productionType && (
+                      <p className="text-sm text-red-600">{form.formState.errors.productionType.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="spacing">Espaçamento entre Plantas</Label>
+                    <Input
+                      id="spacing"
+                      placeholder="Ex: 0.5m x 1m"
+                      data-testid="input-spacing"
+                      {...form.register("spacing")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="organicMatter">Matéria Orgânica (%)</Label>
+                    <Label htmlFor="area" className="font-semibold">Área/Hectare*</Label>
                     <Input
-                      id="organicMatter"
+                      id="area"
+                      placeholder="Ex: 10 hectares"
+                      data-testid="input-area"
+                      {...form.register("area")}
+                    />
+                    {form.formState.errors.area && (
+                      <p className="text-sm text-red-600">{form.formState.errors.area.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sampleDepth" className="font-semibold">Profundidade da Amostra*</Label>
+                    <Select value={form.watch("sampleDepth")} onValueChange={(value) => form.setValue("sampleDepth", value)}>
+                      <SelectTrigger id="sampleDepth" data-testid="select-sampleDepth">
+                        <SelectValue placeholder="Selecione a profundidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SAMPLE_DEPTHS.map((depth) => (
+                          <SelectItem key={depth} value={depth}>
+                            {depth}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.sampleDepth && (
+                      <p className="text-sm text-red-600">{form.formState.errors.sampleDepth.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="collectedBy" className="font-semibold">Coleta Realizada Por*</Label>
+                    <Select value={form.watch("collectedBy")} onValueChange={(value) => form.setValue("collectedBy", value)}>
+                      <SelectTrigger id="collectedBy" data-testid="select-collectedBy">
+                        <SelectValue placeholder="Selecione quem realizou" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COLLECTION_BY.map((by) => (
+                          <SelectItem key={by} value={by}>
+                            {by}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.collectedBy && (
+                      <p className="text-sm text-red-600">{form.formState.errors.collectedBy.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Nome do Campo */}
+              <div className="space-y-2">
+                <Label htmlFor="fieldName" className="font-semibold">Nome do Campo/Talhão*</Label>
+                <Input
+                  id="fieldName"
+                  placeholder="Ex: Talhão A - Zona 1"
+                  data-testid="input-fieldName"
+                  {...form.register("fieldName")}
+                />
+                {form.formState.errors.fieldName && (
+                  <p className="text-sm text-red-600">{form.formState.errors.fieldName.message}</p>
+                )}
+              </div>
+
+              {/* Upload PDF */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-purple-700 text-lg flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+                  Upload da Análise de Solo
+                </h3>
+                <div className="space-y-2">
+                  <Label htmlFor="pdfFile" className="font-semibold">Arquivo PDF</Label>
+                  <div className="flex items-center gap-3">
+                    <label htmlFor="pdfFile" className="flex-1">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-600 transition">
+                        <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                        <p className="text-sm font-medium text-gray-700">Clique para selecionar PDF</p>
+                        <p className="text-xs text-gray-500">ou arraste o arquivo aqui</p>
+                        {uploadedFile && (
+                          <p className="text-xs text-green-600 mt-2">PDF selecionado: {uploadedFile}</p>
+                        )}
+                      </div>
+                      <input
+                        id="pdfFile"
+                        type="file"
+                        accept=".pdf"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                        data-testid="input-pdfFile"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Análise de Solo - Dados */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-green-700 text-lg flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                  Parâmetros de Análise
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="pH" className="font-semibold">pH do Solo</Label>
+                    <Input
+                      id="pH"
                       type="number"
                       step="0.1"
-                      placeholder="0-100%"
-                      data-testid="input-organicMatter"
-                      {...form.register("organicMatter")}
+                      min="0"
+                      max="14"
+                      placeholder="Ex: 6.5"
+                      data-testid="input-pH"
+                      {...form.register("pH")}
                     />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-green-600 text-sm flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
+                    Macronutrientes (mg/dm³)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nitrogen">Nitrogênio (N)</Label>
+                      <Input
+                        id="nitrogen"
+                        type="number"
+                        step="0.01"
+                        placeholder="mg/dm³"
+                        data-testid="input-nitrogen"
+                        {...form.register("nitrogen")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phosphorus">Fósforo (P)</Label>
+                      <Input
+                        id="phosphorus"
+                        type="number"
+                        step="0.01"
+                        placeholder="mg/dm³"
+                        data-testid="input-phosphorus"
+                        {...form.register("phosphorus")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="potassium">Potássio (K)</Label>
+                      <Input
+                        id="potassium"
+                        type="number"
+                        step="0.01"
+                        placeholder="mg/dm³"
+                        data-testid="input-potassium"
+                        {...form.register("potassium")}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-amber-600 text-sm flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
+                    Propriedades Físico-Químicas
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="moisture">Umidade (%)</Label>
+                      <Input
+                        id="moisture"
+                        type="number"
+                        step="0.1"
+                        placeholder="0-100%"
+                        data-testid="input-moisture"
+                        {...form.register("moisture")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="organicMatter">Matéria Orgânica (%)</Label>
+                      <Input
+                        id="organicMatter"
+                        type="number"
+                        step="0.1"
+                        placeholder="0-100%"
+                        data-testid="input-organicMatter"
+                        {...form.register("organicMatter")}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -303,42 +584,6 @@ export default function SoilAnalysis({ userEmail = "" }: SoilAnalysisProps) {
             </form>
           </CardContent>
         </Card>
-
-        {/* Info Cards */}
-        <div className="space-y-4">
-          <Card className="border-none shadow-md bg-gradient-to-br from-green-50 to-emerald-50">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold text-green-700">pH Ideal</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p><span className="font-semibold">Ácido:</span> 4.0 - 6.5</p>
-              <p><span className="font-semibold">Neutro:</span> 6.5 - 7.5</p>
-              <p><span className="font-semibold">Alcalino:</span> 7.5 - 9.0</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-md bg-gradient-to-br from-blue-50 to-cyan-50">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold text-blue-700">Umidade Ideal</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p><span className="font-semibold">Baixa:</span> 15 - 25%</p>
-              <p><span className="font-semibold">Média:</span> 25 - 35%</p>
-              <p><span className="font-semibold">Alta:</span> 35 - 50%</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-md bg-gradient-to-br from-amber-50 to-orange-50">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold text-amber-700">Matéria Orgânica</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p><span className="font-semibold">Baixa:</span> &lt; 2%</p>
-              <p><span className="font-semibold">Média:</span> 2 - 4%</p>
-              <p><span className="font-semibold">Alta:</span> &gt; 4%</p>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
