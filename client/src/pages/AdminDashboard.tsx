@@ -139,7 +139,7 @@ const AdminDashboard = () => {
   const { data: users = [], isLoading: isLoadingUsers } = useQuery<any[]>({
     queryKey: ["/api/users/all"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('users').select('*');
+      const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []).map((u: any) => ({
         ...u,
@@ -437,12 +437,12 @@ const AdminDashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList>
             <TabsTrigger value="analyses">Análises de Solo</TabsTrigger>
+            <TabsTrigger value="clients">Clientes Cadastrados</TabsTrigger>
             <TabsTrigger value="invites">Gerar Links de Convite</TabsTrigger>
             <TabsTrigger value="logins">Logins Gerados</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analyses" className="space-y-6">
-
             {/* Filters */}
             <div className="flex gap-2 mb-6">
               <Button
@@ -464,117 +464,111 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Logins/Clients List */}
-            <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold dark:text-white">Clientes Cadastrados ({logins.length})</h2>
-          </div>
-          {isLoadingLogins ? (
-            <Card><CardContent className="p-4">Carregando clientes...</CardContent></Card>
-          ) : logins.length === 0 ? (
-            <Card><CardContent className="p-4">Nenhum cliente cadastrado</CardContent></Card>
-          ) : (
-            <Card>
-              <CardContent className="p-0">
-                <table className="w-full text-sm">
-                  <thead className="border-b bg-slate-50 dark:bg-slate-800">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-semibold">Nome Cliente</th>
-                      <th className="px-4 py-3 text-left font-semibold">Email</th>
-                      <th className="px-4 py-3 text-left font-semibold">Plano</th>
-                      <th className="px-4 py-3 text-left font-semibold">Status</th>
-                      <th className="px-4 py-3 text-left font-semibold">Expira em</th>
-                      <th className="px-4 py-3 text-left font-semibold">Dias Restantes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logins.map((login: any) => {
-                      const expiresAt = login.expires_at ? new Date(login.expires_at) : null;
-                      const today = new Date();
-                      const daysRemaining = expiresAt ? Math.ceil((expiresAt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : -1;
-                      const isExpired = daysRemaining < 0;
-                      
-                      return (
-                        <tr key={login.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
-                          <td className="px-4 py-3 font-medium">{login.clientName || "Sem nome"}</td>
-                          <td className="px-4 py-3">{login.email}</td>
-                          <td className="px-4 py-3">
-                            <Badge variant="outline">
-                              {login.plan === "1_month" ? "1 mês" : login.plan === "3_months" ? "3 meses" : "6 meses"}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge className={login.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                              {login.status === "active" ? "Ativo" : "Inativo"}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                            {expiresAt ? expiresAt.toLocaleDateString("pt-BR") : "-"}
-                          </td>
-                          <td className="px-4 py-3">
-                            {isExpired ? (
+            {/* Table */}
+            {isLoading ? (
+              <Card>
+                <CardContent className="p-8 text-center text-slate-500">Carregando...</CardContent>
+              </Card>
+            ) : filteredAnalyses.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center text-slate-500">
+                  Nenhuma análise encontrada
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="overflow-x-auto">
+                <Card>
+                  <CardContent className="p-0">
+                    <table className="w-full text-sm">
+                      <thead className="border-b bg-slate-50 dark:bg-slate-800">
+                        <tr>
+                          <th className="px-4 py-3 text-left font-semibold">Email</th>
+                          <th className="px-4 py-3 text-left font-semibold">Produtor</th>
+                          <th className="px-4 py-3 text-left font-semibold">Propriedade</th>
+                          <th className="px-4 py-3 text-left font-semibold">Cultura</th>
+                          <th className="px-4 py-3 text-left font-semibold">Status</th>
+                          <th className="px-4 py-3 text-left font-semibold">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredAnalyses.map((analysis) => (
+                          <tr key={analysis.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.userEmail}</td>
+                            <td className="px-4 py-3 font-medium" data-testid={`text-producer-${analysis.id}`}>
+                              {((analysis as any).producerName || "-")}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.propertyName || "-"}</td>
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.cropType}</td>
+                            <td className="px-4 py-3">
+                              <Badge className={statusConfig[analysis.status as keyof typeof statusConfig]?.color || ""}>
+                                {statusConfig[analysis.status as keyof typeof statusConfig]?.label || analysis.status}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => {
-                                  setSelectedLoginForRenewal(login);
-                                  setRenewalPlan("1_month");
-                                  setRenewalModalOpen(true);
+                                  setSelectedAnalysis(analysis);
+                                  setModalOpen(true);
                                 }}
-                                data-testid={`button-renew-${login.id}`}
+                                data-testid={`button-edit-analysis-${analysis.id}`}
                               >
-                                <RefreshCw className="w-3 h-3 mr-1" />
-                                Renovar
+                                <Edit2 className="w-4 h-4 mr-1" />
+                                Revisar
                               </Button>
-                            ) : (
-                              <Badge className={daysRemaining <= 7 ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
-                                {daysRemaining} dias
-                              </Badge>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
 
-            {/* Table */}
-            {isLoading ? (
-          <Card>
-            <CardContent className="p-8 text-center text-slate-500">Carregando...</CardContent>
-          </Card>
-        ) : filteredAnalyses.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center text-slate-500">
-              Nenhuma análise encontrada
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="overflow-x-auto">
-            <Card>
-              <CardContent className="p-0">
-                <table className="w-full text-sm">
-                  <thead className="border-b bg-slate-50 dark:bg-slate-800">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-semibold">Email</th>
-                      <th className="px-4 py-3 text-left font-semibold">Produtor</th>
-                      <th className="px-4 py-3 text-left font-semibold">Propriedade</th>
-                      <th className="px-4 py-3 text-left font-semibold">Cultura</th>
-                      <th className="px-4 py-3 text-left font-semibold">Status</th>
-                      <th className="px-4 py-3 text-left font-semibold">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAnalyses.map((analysis) => (
-                      <tr key={analysis.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{analysis.userEmail}</td>
-                        <td className="px-4 py-3 font-medium" data-testid={`text-producer-${analysis.id}`}>
-                          {((analysis as any).producerName || "-")}
-                        </td>
+          <TabsContent value="clients" className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold dark:text-white">Clientes Cadastrados ({users.length})</h2>
+            </div>
+            {isLoadingUsers ? (
+              <Card><CardContent className="p-4">Carregando usuários...</CardContent></Card>
+            ) : users.length === 0 ? (
+              <Card><CardContent className="p-4">Nenhum cliente cadastrado ainda.</CardContent></Card>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="border-b bg-slate-50 dark:bg-slate-800">
+                        <tr>
+                          <th className="px-4 py-3 text-left font-semibold">Nome</th>
+                          <th className="px-4 py-3 text-left font-semibold">Email</th>
+                          <th className="px-4 py-3 text-left font-semibold">Telefone</th>
+                          <th className="px-4 py-3 text-left font-semibold">Profissão</th>
+                          <th className="px-4 py-3 text-left font-semibold">Data Cadastro</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.map((user: any) => (
+                          <tr key={user.id} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <td className="px-4 py-3 font-medium">{user.fullName || "-"}</td>
+                            <td className="px-4 py-3">{user.email}</td>
+                            <td className="px-4 py-3">{user.phone || "-"}</td>
+                            <td className="px-4 py-3">{user.occupation || "-"}</td>
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                              {user.createdAt ? new Date(user.createdAt).toLocaleDateString("pt-BR") : "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
                         <td className="px-4 py-3 font-medium" data-testid={`text-property-${analysis.id}`}>
                           {((analysis as any).propertyName || "-")}
                         </td>
