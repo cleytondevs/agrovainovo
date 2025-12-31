@@ -350,7 +350,8 @@ export default function Dashboard() {
       const { count, error } = await supabase
         .from('soil_analysis')
         .select('*', { count: 'exact', head: true })
-        .eq('user_email', user?.email);
+        .eq('user_email', user?.email)
+        .eq('status', 'pending');
       if (error) throw error;
       return count || 0;
     },
