@@ -246,13 +246,13 @@ export default function MyAnalyses() {
                     )}
 
                     {/* Arquivos do Admin */}
-                    {analysis.adminFileUrls && (
+                    {analysis.adminFileUrls && Array.isArray(analysis.adminFileUrls) && analysis.adminFileUrls.length > 0 && (
                       <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-4">
                         <h4 className="font-semibold text-sm text-green-900 dark:text-green-100 mb-3">
                           Resultados e Relatórios
                         </h4>
                         <div className="space-y-2">
-                          {analysis.adminFileUrls.split(";").map((file, idx) => (
+                          {analysis.adminFileUrls.map((file: string, idx: number) => (
                             file.trim() && (
                               <Button
                                 key={idx}

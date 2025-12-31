@@ -177,31 +177,29 @@ const AdminDashboard = () => {
 
   const submitAnalysisMutation = useMutation({
     mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
-      console.log('[AdminDashboard] Saving analysis review:', data);
+      // Garantir que adminFileUrls seja um array para evitar erro 22P02 no PostgreSQL/Supabase
+      const filesArray = data.adminFileUrls ? data.adminFileUrls.split(";").filter(f => f.trim()) : [];
+      
       const { error } = await supabase.from('soil_analysis').update({
         status: data.status,
         admin_comments: data.adminComments,
-        admin_file_urls: data.adminFileUrls,
+        admin_file_urls: filesArray, // Enviando como Array
         updated_at: new Date().toISOString()
       } as any).eq('id', data.id);
       
-      if (error) {
-        console.error('[AdminDashboard] Error saving analysis:', error);
-        throw error;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
-      // Invalidar cache do admin e do cliente
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/user"] });
-      toast({ title: "Análise atualizada com sucesso", description: "O cliente já pode visualizar as alterações." });
+      toast({ title: "Análise atualizada com sucesso" });
       setModalOpen(false);
     },
     onError: (error: any) => {
       toast({ 
         variant: "destructive", 
         title: "Erro ao salvar", 
-        description: error.message || "Falha ao sincronizar com o banco de dados." 
+        description: error.message || "Erro de formato nos dados." 
       });
     },
   });

@@ -1,0 +1,222 @@
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+/@fdbde04182/Agro-Login-Portal-4?v=1:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+/@fdbde04182/Agro-Login-Portal-4?v=1:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+/@fdbde04182/Agro-Login-Portal-4?v=1:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+VM46:8 [Coframe] Replit Enterprise watcher loaded
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+ Refused to execute inline script because it violates the following Content Security Policy directive: "script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' chrome-extension://75dee662-bdbf-489d-87e5-ac9540241382/". Either the 'unsafe-inline' keyword, a hash ('sha256-kPx0AsF0oz2kKiZ875xSvv693TBHkQ/0SkMJZnnNpnQ='), or a nonce ('nonce-...') is required to enable inline execution.
+
+(anonymous) @ chrome-extension://a…j/includes/tab.js:1
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+37c01d67843843ef.js:2 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+37c01d67843843ef.js:2 Download the Apollo DevTools for a better development experience: https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+37c01d67843843ef.js:2 [LaunchDarkly] LaunchDarkly client initialized
+ enable copy content js called
+ Object
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+/@fdbde04182/Agro-Login-Portal-4?v=1:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+ enable copy content js called
+ Object
+/@fdbde04182/Agro-Lo…#NETLIFY_SETUP.md:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+/@fdbde04182/Agro-Lo…#NETLIFY_SETUP.md:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+/@fdbde04182/Agro-Lo…#NETLIFY_SETUP.md:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+ed1e693c96a75807.js:2 Unrecognized feature: 'ambient-light-sensor'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'battery'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'execution-while-not-rendered'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'execution-while-out-of-viewport'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'layout-animations'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'legacy-image-formats'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'navigation-override'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'oversized-images'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'publickey-credentials'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'speaker-selection'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'unoptimized-images'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'unsized-media'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'pointer-lock'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Allow attribute will take precedence over 'allowfullscreen'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Allow attribute will take precedence over 'allowpaymentrequest'.
+z @ ed1e693c96a75807.js:2
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2F&id=%3Areh%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+injected.js:37 [Supabase Init] Checking environment variables: Object
+injected.js:37 [Supabase Init] Successfully obtained credentials, creating client
+injected.js:37 Supabase initialized successfully
+enable_copy.js:1 enable copy content js called
+enable_copy.js:173 Object
+631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev/:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZCZ24?modules=price' from origin 'https://631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZCZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+injected.js:37 Failed to fetch ZCZ24 TypeError: Failed to fetch
+    at Object.apply (injected.js:214:39)
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+(anonymous) @ injected.js:37
+631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev/:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZSZ24?modules=price' from origin 'https://631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZSZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+injected.js:37 Failed to fetch ZSZ24 TypeError: Failed to fetch
+    at Object.apply (injected.js:214:39)
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+(anonymous) @ injected.js:37
+631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev/:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZMZ24?modules=price' from origin 'https://631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZMZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+injected.js:37 Failed to fetch ZMZ24 TypeError: Failed to fetch
+    at Object.apply (injected.js:214:39)
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+(anonymous) @ injected.js:37
+631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev/:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/KCZ24?modules=price' from origin 'https://631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/KCZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+injected.js:37 Failed to fetch KCZ24 TypeError: Failed to fetch
+    at Object.apply (injected.js:214:39)
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+(anonymous) @ injected.js:37
+injected.js:37 Commodity prices fetch failed Error: Could not fetch commodity prices
+    at fetchCommodityPrices (Dashboard.tsx:253:15)
+(anonymous) @ injected.js:37
+631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev/dashboard:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZCZ24?modules=price' from origin 'https://631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZCZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+injected.js:37 Failed to fetch ZCZ24 TypeError: Failed to fetch
+    at Object.apply (injected.js:214:39)
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+(anonymous) @ injected.js:37
+631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev/dashboard:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZSZ24?modules=price' from origin 'https://631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZSZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+injected.js:37 Failed to fetch ZSZ24 TypeError: Failed to fetch
+    at Object.apply (injected.js:214:39)
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+(anonymous) @ injected.js:37
+631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev/dashboard:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/ZMZ24?modules=price' from origin 'https://631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/ZMZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+injected.js:37 Failed to fetch ZMZ24 TypeError: Failed to fetch
+    at Object.apply (injected.js:214:39)
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+(anonymous) @ injected.js:37
+631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev/dashboard:1 Access to fetch at 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/KCZ24?modules=price' from origin 'https://631bd768-3ae0-40e0-bd16-6edaaee714c8-00-3ioe40h82xlhf.kirk.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+query1.finance.yahoo.com/v10/finance/quoteSummary/KCZ24?modules=price:1  Failed to load resource: net::ERR_FAILED
+injected.js:37 Failed to fetch KCZ24 TypeError: Failed to fetch
+    at Object.apply (injected.js:214:39)
+    at fetchCommodityPrices (Dashboard.tsx:191:34)
+(anonymous) @ injected.js:37
+injected.js:37 Commodity prices fetch failed Error: Could not fetch commodity prices
+    at fetchCommodityPrices (Dashboard.tsx:253:15)
+(anonymous) @ injected.js:37
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/users?select=*:1  Failed to load resource: the server responded with a status of 404 ()
+injected.js:37 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ injected.js:37
+injected.js:37 [AdminDashboard] Saving analysis review: Object
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?id=eq.5:1  Failed to load resource: the server responded with a status of 400 ()
+injected.js:37 [AdminDashboard] Error saving analysis: Object
+(anonymous) @ injected.js:37
+injected.js:37 [AdminDashboard] Saving analysis review: Object
+uocgvjfxfpxzecxplffa.supabase.co/rest/v1/soil_analysis?id=eq.5:1  Failed to load resource: the server responded with a status of 400 ()
+injected.js:37 [AdminDashboard] Error saving analysis: Object
+(anonymous) @ injected.js:37
