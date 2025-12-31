@@ -692,7 +692,7 @@ export async function registerRoutes(
   app.get('/api/auth-users', async (req, res) => {
     try {
       const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-      const serviceRoleKey = process.env.SUPABASE_KEY || '';
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
       console.log('[AUTH-USERS] Config check:', { hasUrl: !!supabaseUrl, hasKey: !!serviceRoleKey });
 
