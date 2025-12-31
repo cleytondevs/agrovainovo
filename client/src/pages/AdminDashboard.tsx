@@ -425,6 +425,7 @@ const AdminDashboard = () => {
             queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
             toast({ title: "Análise deletada com sucesso" });
             setModalOpen(false);
+            return Promise.resolve();
           }}
         />
       )}
