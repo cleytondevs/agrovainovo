@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { LogOut, Check, X, Clock, Edit2, Copy, Trash2, Plus, RefreshCw } from "lucide-react";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { AdminAnalysisModal } from "./AdminAnalysisModal";
 import type { SoilAnalysis } from "@shared/schema";
@@ -141,20 +141,33 @@ const AdminDashboard = () => {
 
   const submitAnalysisMutation = useMutation({
     mutationFn: async (data: { id: number; status: string; adminComments: string; adminFileUrls: string }) => {
-      const filesArray = data.adminFileUrls ? data.adminFileUrls.split(";").filter(f => f.trim()) : [];
-      const { error } = await supabase.from('soil_analysis').update({
-        status: data.status,
-        admin_comments: data.adminComments,
-        admin_file_urls: filesArray,
-        updated_at: new Date().toISOString()
-      } as any).eq('id', data.id);
-      if (error) throw error;
+      const response = await apiRequest(`/api/soil-analysis/${data.id}/review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: data.status,
+          adminComments: data.adminComments,
+          adminFileUrls: data.adminFileUrls
+        })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao atualizar análise');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
       toast({ title: "Análise atualizada com sucesso" });
       setModalOpen(false);
     },
+    onError: (error: any) => {
+      toast({ 
+        variant: "destructive", 
+        title: "Erro", 
+        description: error.message || "Erro ao atualizar análise" 
+      });
+    }
   });
 
   const createInviteMutation = useMutation({
@@ -366,10 +379,20 @@ const AdminDashboard = () => {
 
       {selectedAnalysis && (
         <AdminAnalysisModal
-          isOpen={modalOpen}
+          open={modalOpen}
           onClose={() => setModalOpen(false)}
           analysis={selectedAnalysis}
           onSubmit={(data) => submitAnalysisMutation.mutate({ id: selectedAnalysis.id, ...data })}
+          onDelete={async (id) => {
+            const response = await fetch(`/api/soil-analysis/${id}`, { method: 'DELETE' });
+            if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.error || 'Erro ao deletar');
+            }
+            queryClient.invalidateQueries({ queryKey: ["/api/soil-analysis/all"] });
+            toast({ title: "Análise deletada com sucesso" });
+            setModalOpen(false);
+          }}
         />
       )}
     </div>

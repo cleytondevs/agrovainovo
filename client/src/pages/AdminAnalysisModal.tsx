@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,13 +42,13 @@ export function AdminAnalysisModal({
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Initialize form with analysis data
-  useState(() => {
+  useEffect(() => {
     if (analysis) {
       setStatus(analysis.status || "pending");
       setComments(analysis.adminComments || "");
-      setFileUrls(Array.isArray(analysis.adminFileUrls) ? analysis.adminFileUrls : []);
+      setFileUrls(Array.isArray(analysis.adminFileUrls) ? analysis.adminFileUrls : (analysis.adminFileUrls ? [analysis.adminFileUrls] : []));
     }
-  });
+  }, [analysis?.id]);
 
   const handleDownloadPdf = async () => {
     if (!analysis?.soil_analysis_pdf) {
