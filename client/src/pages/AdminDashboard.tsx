@@ -253,12 +253,26 @@ const AdminDashboard = () => {
 
   const deleteLoginMutation = useMutation({
     mutationFn: async (id: number) => {
-      const { error } = await supabase.from('logins').delete().eq('id', id);
-      if (error) throw error;
+      const response = await fetch(`/api/logins/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Falha ao deletar login');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/logins"] });
-      toast({ title: "Login removido com sucesso!" });
+      toast({ title: "Login removido com sucesso do painel e da autenticação!" });
+    },
+    onError: (error) => {
+      toast({ title: "Erro", description: String(error), variant: "destructive" });
     },
   });
 
