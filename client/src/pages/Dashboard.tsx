@@ -64,6 +64,23 @@ const LUNAR_PHASES = {
 
 const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
+// Função para calcular a fase da lua
+const calculateMoonPhase = (date: Date = new Date()): { phase: string; illumination: number } => {
+  const referenceDate = new Date(2000, 0, 6); // Nova Lua de referência
+  const daysSinceReference = (date.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24);
+  const moonCycle = 29.53; // Ciclo lunar em dias
+  const daysInCycle = daysSinceReference % moonCycle;
+  const illumination = Math.round(((daysInCycle / moonCycle) * 100 + 100) % 100);
+  
+  let phase = "Nova";
+  if (daysInCycle < 7.38) phase = "Crescente";
+  else if (daysInCycle < 14.77) phase = "Cheia";
+  else if (daysInCycle < 22.11) phase = "Minguante";
+  else phase = "Nova";
+  
+  return { phase, illumination };
+};
+
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -87,7 +104,7 @@ export default function Dashboard() {
   const fetchWeather = async (lat: number, lon: number, city: string) => {
     setLoadingWeather(true);
     try {
-      const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`);
+      const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relative_humidity_2m,precipitation&timezone=auto`);
       const data = await response.json();
       
       // Determine city/state name for weather display
@@ -102,10 +119,25 @@ export default function Dashboard() {
         }
       }
 
+      // Obter hora atual em UTC
+      const now = new Date();
+      const currentHour = now.getHours();
+      
+      // Extrair dados horários (usar o índice correspondente à hora atual)
+      const humidity = data.hourly?.relative_humidity_2m?.[currentHour] || 65;
+      const precipitation = data.hourly?.precipitation?.[currentHour] || 0;
+      
+      // Calcular fase da lua
+      const moonData = calculateMoonPhase(now);
+
       setWeather({
         temp: data.current_weather.temperature,
         city: displayName,
-        code: data.current_weather.weathercode
+        code: data.current_weather.weathercode,
+        humidity: humidity,
+        precipitation: precipitation,
+        moonPhase: moonData.phase,
+        moonIllumination: moonData.illumination
       });
     } catch (e) {
       console.error("Weather fetch failed", e);
@@ -433,11 +465,25 @@ export default function Dashboard() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-end gap-2 mb-2">
+                      <div className="flex items-end gap-2 mb-3">
                         <span className="text-4xl font-bold">{weather ? `${weather.temp}°C` : "24°C"}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm opacity-80">
+                      <div className="flex items-center gap-2 text-sm opacity-80 mb-3">
                         <MapPin size={14} /> {weather ? weather.city : "São Paulo"}, BR
+                      </div>
+                      <div className="space-y-2 text-xs opacity-90 border-t border-white/20 pt-2">
+                        <div className="flex items-center justify-between">
+                          <span>Umidade do Ar:</span>
+                          <span className="font-bold">{weather ? `${weather.humidity}%` : "65%"}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Precipitação:</span>
+                          <span className="font-bold">{weather ? `${weather.precipitation.toFixed(1)}mm` : "0.0mm"}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Fase da Lua:</span>
+                          <span className="font-bold">{weather ? weather.moonPhase : "Nova"}</span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
